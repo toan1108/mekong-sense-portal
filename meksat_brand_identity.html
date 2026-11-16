@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEKSAT — Official Brand Identity &amp; Design System Guidelines (Mekong Sense)</title>
+
+    <!-- Typography: Public Sans & IBM Plex Mono (Locked Canonical Specification) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* -------------------------------------------------------------------------
+         * DESIGN SYSTEM TOKENS: DATA TERMINAL (LOCKED PRODUCTION CANONICAL)
+         * ---------------------------------------------------------------------- */
+        :root {
+            --ground:          #171719;
+            --surface:         #131217;
+            --surface-raised:  #212023;
+            --surface-hover:   #26252a;
+            --border:          #222224;
+            --rule:            #1b1a1f;
+            --control:         #2c2b30;
+            --text-primary:    #ffffff;
+            --text-secondary:  #cbd5e1;
+            --text-muted:      #8a8c92;
+            --accent:          #38bdf8; /* Spaceborne SWOT Cyan */
+            --positive:        #34d399; /* Operational Stable Emerald */
+            --warning:         #d9a441; /* Sensor Calibration Amber */
+            --negative:        #e5566f; /* Alert Rose */
+            --font-sans:       'Public Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-mono:       'IBM Plex Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html, body {
+            font-family: var(--font-sans);
+            background: var(--ground);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .font-mono-tabular {
+            font-family: var(--font-mono) !important;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .font-mono {
+            font-family: var(--font-mono) !important;
+        }
+
+        /* -------------------------------------------------------------------------
+         * THE MOVE: 1PX ACCENT UNDERLINE SELECTION
+         * ---------------------------------------------------------------------- */
+        .brand-nav-link {
+            position: relative;
+            padding: 8px 12px;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            font-size: 12px;
+            font-family: var(--font-mono);
+            transition: color 120ms ease-out, border-color 120ms ease-out;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .brand-nav-link:hover {
+            color: var(--text-primary);
+        }
+        .brand-nav-link.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Physical Micro-interaction Feedback */
+        button:active, a:active {
+            transform: scale(0.98);
+        }
+
+        /* Subtle Technical Grid Background */
+        .technical-grid {
+            background-color: var(--ground);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--surface);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a292f;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38373e;
+        }
+
+        /* Toast notification */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #212023;
+            border: 1px solid #38bdf8;
+            color: #ffffff;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            z-index: 99999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease-out;
+            pointer-events: none;
+        }
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-[#171719] text-white">
+
+    <!-- Toast Notification Element -->
+    <div id="toast" role="status" aria-live="polite">Asset copied to clipboard</div>
+
+    <!-- -----------------------------------------------------------------------
+     * 1. TOP STICKY FLIGHT BAR (48PX BRAND NAVIGATION)
+     * -------------------------------------------------------------------- -->
+    <header class="sticky top-0 z-50 h-12 bg-[#131217]/95 border-b border-[#222224] flex items-center justify-between px-4 lg:px-8">
+        <!-- Left: Brand Lockup & Status -->
+        <div class="flex items-center space-x-3">
+            <a href="index.html" class="flex items-center space-x-2.5 hover:opacity-90 transition-opacity" title="MEKSAT — Home">
+                <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M16 4.5L7 13.5H12L16 9.5L20 13.5H25L16 4.5Z" fill="#38bdf8"/>
+  <circle cx="16" cy="4.5" r="1.1" fill="#ffffff"/>
+  <path d="M6 18.5C10.5 15.5 13.5 21.5 16 21.5C18.5 21.5 21.5 15.5 26 18.5" stroke="#f8fafc" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M6 24.5C10.5 21.5 13.5 27.5 16 27.5C18.5 27.5 21.5 21.5 26 24.5" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+</svg>
+                <div class="flex items-baseline space-x-1.5">
+                    <span class="text-xs font-extrabold tracking-widest font-mono text-white">MEKSAT</span>
+                    <span class="text-[11px] font-semibold text-sky-400 font-mono">BRAND SYSTEM</span>
+                </div>
+            </a>
+            <span class="hidden sm:inline-block text-[11px] font-mono-tabular text-slate-400 bg-[#171719] px-1.5 py-0.5 rounded border border-[#2c2b30]">v3.2 SOTA</span>
+        </div>
+
+        <!-- Center: Chapter Navigation Links (The Move: 1px accent underline) -->
+        <nav class="hidden md:flex items-center space-x-1 h-12">
+            <a href="#narrative" class="brand-nav-link active">1. Strategy</a>
+            <a href="#geometry" class="brand-nav-link">2. Geometry</a>
+            <a href="#lockups" class="brand-nav-link">3. Lockups</a>
+            <a href="#palette" class="brand-nav-link">4. Palette</a>
+            <a href="#typography" class="brand-nav-link">5. Typography</a>
+            <a href="#applications" class="brand-nav-link">6. Field Gear</a>
+            <a href="#downloads" class="brand-nav-link">7. Assets</a>
+        </nav>
+
+        <!-- Right: Actions -->
+        <div class="flex items-center space-x-2">
+            <a href="portal_multiwindow_terminal.html" class="px-2.5 py-1 rounded bg-[#212023] hover:bg-[#2c2b30] border border-[#333338] text-slate-200 text-xs font-mono flex items-center space-x-1.5 transition-colors" title="Launch MEKSAT Multi-Window Observatory">
+                <span>Launch Portal</span>
+                <span class="text-sky-400 font-bold">&rarr;</span>
+            </a>
+            <a href="#downloads" class="px-2.5 py-1 rounded bg-sky-950/80 hover:bg-sky-900 border border-sky-800 text-sky-300 text-xs font-mono font-medium flex items-center transition-colors">
+                <svg class="w-3.5 h-3.5 mr-1 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                <span>Download Kit</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- -----------------------------------------------------------------------
+     * 2. HERO STAGE (ONE MOTIF: MASSIVE CROPPED VECTOR BLUEPRINT)
+     * -------------------------------------------------------------------- -->
+    <section class="relative min-h-[85vh] border-b border-[#222224] flex flex-col justify-between overflow-hidden technical-grid px-6 lg:px-12 py-12">
+        <!-- Floating Motif Blueprint (Massive Scale on Canvas) -->
+        <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 opacity-15 pointer-events-none select-none">
+            <svg width="680" height="680" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="16" r="15" stroke="#38bdf8" stroke-width="0.3" stroke-dasharray="1 2"/>
+      <line x1="0" y1="16" x2="32" y2="16" stroke="#222224" stroke-width="0.4"/>
+      <line x1="16" y1="0" x2="16" y2="32" stroke="#222224" stroke-width="0.4"/>
+      <path d="M16 4.5L7 13.5H12L16 9.5L20 13.5H25L16 4.5Z" fill="#38bdf8" opacity="0.8"/>
+      <circle cx="16" cy="4.5" r="1.1" fill="#ffffff"/>
+      <path d="M6 18.5C10.5 15.5 13.5 21.5 16 21.5C18.5 21.5 21.5 15.5 26 18.5" stroke="#f8fafc" stroke-width="2" stroke-linecap="round"/>
+      <path d="M6 24.5C10.5 21.5 13.5 27.5 16 27.5C18.5 27.5 21.5 21.5 26 24.5" stroke="#34d399" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+        </div>
+
+        <!-- Hero Content Top -->
+        <div class="max-w-4xl space-y-6 relative z-10 pt-4">
+            <div class="inline-flex items-center space-x-2 px-2.5 py-1 rounded bg-[#212023] border border-[#2c2b30] text-xs font-mono text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span class="font-bold text-white">OFFICIAL IDENTITY GUIDELINE</span>
+                <span class="text-slate-600">|</span>
+                <span class="text-sky-400 font-mono-tabular">Mekong Sense • HYDRO-GEODESY DIVISION</span>
+            </div>
+
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight" style="font-size: clamp(2.5rem, 4.5vw, 3.5rem); line-height: 1.1;">
+                Địa trắc Không gian.<br>
+                <span class="text-sky-400">Minh bạch Dòng chảy.</span><br>
+                Bảo vệ Đồng bằng.
+            </h1>
+
+            <p class="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed font-normal">
+                Autonomous Spaceborne Hydro-Geodesy for the Mekong Basin. The formal brand architecture, precision monoline symbology, and operational standards of <strong>MEKSAT</strong>.
+            </p>
+        </div>
+
+        <!-- Hero Footer Indicators (Tabular Rigor) -->
+        <div class="pt-12 border-t border-[#222224] grid grid-cols-2 md:grid-cols-4 gap-6 relative z-10 text-xs font-mono">
+            <div>
+                <span class="text-slate-400 block mb-1">OFFICIAL MONOMARK</span>
+                <strong class="text-white text-sm font-semibold">Precision Monoline</strong>
+            </div>
+            <div>
+                <span class="text-slate-400 block mb-1">COLOR ARCHITECTURE</span>
+                <strong class="text-sky-400 text-sm font-semibold">Data Terminal (&lt;3%)</strong>
+            </div>
+            <div>
+                <span class="text-slate-400 block mb-1">TYPOGRAPHY PAIR</span>
+                <strong class="text-white text-sm font-semibold">Public Sans + IBM Plex</strong>
+            </div>
+            <div>
+                <span class="text-slate-400 block mb-1">VERIFICATION STATUS</span>
+                <strong class="text-emerald-400 text-sm font-semibold font-mono-tabular">LOCKED SOTA 2026</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+     * 3. CHAPTER 1: STRATEGY & ANATOMY
+     * -------------------------------------------------------------------- -->
+    <section id="narrative" class="px-6 lg:px-12 py-16 border-b border-[#222224] space-y-10">
+        <div class="space-y-2">
+            <span class="text-xs font-mono text-sky-400 font-semibold">Brand Nomenclature</span>
+            <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight" style="font-size: clamp(1.6rem, 2.5vw, 2.2rem); line-height: 1.2;">Brand Strategy &amp; Nomenclature</h2>
+            <p class="text-sm text-slate-400 max-w-2xl">
+                The institutional foundation and linguistic construction of the MEKSAT brand.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Strategic Acronym Breakdown -->
+            <div class="p-6 bg-[#131217] border border-[#222224] rounded-lg space-y-5">
+                <div class="flex items-center justify-between border-b border-[#222224] pb-3">
+                    <span class="font-bold text-sm text-white font-mono">ACRONYM FORMULATION</span>
+                    <span class="text-xs font-mono text-emerald-400 font-mono-tabular">4-Letter Core</span>
+                </div>
+                <div class="space-y-3 font-mono text-xs">
+                    <div class="flex items-baseline justify-between py-2 border-b border-[#1b1a1f]">
+                        <span class="text-sky-400 font-bold text-sm w-16">MEK</span>
+                        <span class="text-slate-300 flex-1">Mekong Transboundary Basin</span>
+                        <span class="text-slate-400 text-[11px]">Geographic Scope</span>
+                    </div>
+                    <div class="flex items-baseline justify-between py-2 border-b border-[#1b1a1f]">
+                        <span class="text-sky-400 font-bold text-sm w-16">S</span>
+                        <span class="text-slate-300 flex-1">Spaceborne Earth Observation</span>
+                        <span class="text-slate-400 text-[11px]">SWOT / SAR / Optical</span>
+                    </div>
+                    <div class="flex items-baseline justify-between py-2 border-b border-[#1b1a1f]">
+                        <span class="text-sky-400 font-bold text-sm w-16">A</span>
+                        <span class="text-slate-300 flex-1">Analytics &amp; Hypsometry</span>
+                        <span class="text-slate-400 text-[11px]">PCHIP / Mass Balance</span>
+                    </div>
+                    <div class="flex items-baseline justify-between py-2 border-b border-[#1b1a1f]">
+                        <span class="text-sky-400 font-bold text-sm w-16">T</span>
+                        <span class="text-slate-300 flex-1">Telemetry &amp; Ground Invariants</span>
+                        <span class="text-slate-400 text-[11px]">Gauge Convergence</span>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed pt-2 border-t border-[#222224]">
+                    Not a hardware satellite; MEKSAT is the <strong>spaceborne computational observatory and hydro-geodetic telemetry workbench</strong> of Mekong Sense.
+                </p>
+            </div>
+
+            <!-- Archetype & Voice -->
+            <div class="p-6 bg-[#131217] border border-[#222224] rounded-lg space-y-5">
+                <div class="flex items-center justify-between border-b border-[#222224] pb-3">
+                    <span class="font-bold text-sm text-white font-mono">ARCHETYPE &amp; VOICE</span>
+                    <span class="text-xs font-mono text-sky-400">The Sage + The Guardian</span>
+                </div>
+                <div class="space-y-4 text-xs leading-relaxed text-slate-300">
+                    <div>
+                        <strong class="text-white block mb-1">1. The Sage (Nhà Khoa Học Thông Thái):</strong>
+                        Dữ liệu nói lên sự thật. Mọi thông số được kiểm định qua hệ quy chiếu toán học bất biến, không che giấu rủi ro và không tô hồng sai số.
+                    </div>
+                    <div class="pt-3 border-t border-[#222224]">
+                        <strong class="text-white block mb-1">2. The Guardian (Người Gác Cổng Đồng Bằng):</strong>
+                        Bảo vệ tính toàn vẹn nguồn nước cho 20 triệu người dân Đồng bằng Sông Cửu Long thông qua quan trắc độc lập, khách quan từ vũ trụ.
+                    </div>
+                    <div class="pt-3 border-t border-[#222224] font-mono text-[11px] text-slate-400">
+                        Institutional Attribution: Southern Institute of Water Resources Research (Mekong Sense) • Ho Chi Minh City, Vietnam.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+     * 4. CHAPTER 2: PRECISION MONOLINE GEOMETRY
+     * -------------------------------------------------------------------- -->
+    <section id="geometry" class="px-6 lg:px-12 py-16 border-b border-[#222224] space-y-10">
+        <div class="space-y-2">
+            <span class="text-xs font-mono text-sky-400 font-semibold">Monoline Geometry</span>
+            <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight" style="font-size: clamp(1.6rem, 2.5vw, 2.2rem); line-height: 1.2;">The Monoline Mark &amp; Geometric Anatomy</h2>
+            <p class="text-sm text-slate-400 max-w-2xl">
+                Engineered on a 32&times;32 orthogonal grid with mathematical precision. Every stroke carries geodetic meaning.
+            </p>
+        </div>
+
+        <!-- Interactive Blueprint Workbench -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <!-- Left: Large Interactive Vector Visualizer -->
+            <div class="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-[#171719] border border-[#222224] rounded-lg relative overflow-hidden technical-grid">
+                <div class="relative w-64 h-64 flex items-center justify-center">
+                    <!-- Construction Matrix Lines -->
+                    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="14" stroke="#2c2b30" stroke-width="0.3" stroke-dasharray="1 1"/>
+                        <circle cx="16" cy="16" r="8" stroke="#2c2b30" stroke-width="0.3" stroke-dasharray="1 1"/>
+                        <line x1="0" y1="16" x2="32" y2="16" stroke="#2c2b30" stroke-width="0.3"/>
+                        <line x1="16" y1="0" x2="16" y2="32" stroke="#2c2b30" stroke-width="0.3"/>
+                        <line x1="7" y1="0" x2="7" y2="32" stroke="#222224" stroke-width="0.2"/>
+                        <line x1="25" y1="0" x2="25" y2="32" stroke="#222224" stroke-width="0.2"/>
+                        <line x1="0" y1="25" x2="32" y2="25" stroke="#222224" stroke-width="0.2"/>
+                        <!-- The 4 Layers -->
+                        <line x1="16" y1="4" x2="7" y2="25" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.35"/>
+                        <line x1="16" y1="4" x2="25" y2="25" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.35"/>
+                        <path d="M7 25V11L16 20L25 11V25" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 7L16 12" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M16 20L16 26" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+                        <circle cx="16" cy="5" r="1.5" fill="#38bdf8"/>
+                    </svg>
+                </div>
+                <div class="mt-4 text-[11px] font-mono text-slate-400">
+                    Grid Unit: 1px = 0.03125 ViewBox · Safe Clear Space: 1X
+                </div>
+            </div>
+
+            <!-- Right: 4 Layer Breakdown -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="p-3.5 bg-[#131217] border-b border-[#222224] flex items-start space-x-3.5">
+                    <span class="w-3 h-3 rounded-full bg-sky-400 mt-1 flex-shrink-0"></span>
+                    <div>
+                        <div class="text-xs font-mono font-bold text-white flex items-center space-x-2">
+                            <span>1. THE ORBITAL SENSOR NODE (16, 5)</span>
+                            <span class="text-[11px] text-sky-400 font-mono-tabular">r = 1.5</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Chấm tròn tọa độ vệ tinh màu Cyan tại đỉnh cao nhất, biểu trưng cho chùm vệ tinh SWOT KaRIn, ICESat-2 và Sentinel.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="p-3.5 bg-[#131217] border-b border-[#222224] flex items-start space-x-3.5">
+                    <span class="w-3 h-3 rounded-full bg-sky-400/50 mt-1 flex-shrink-0"></span>
+                    <div>
+                        <div class="text-xs font-mono font-bold text-white flex items-center space-x-2">
+                            <span>2. THE INTERFEROMETRIC SENSOR BEAM</span>
+                            <span class="text-[11px] text-slate-400 font-mono-tabular">opacity 0.35</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Hai dải xung quét tam giác mở rộng từ vệ tinh bao trùm toàn bộ lưu vực, tượng trưng cho trường quan trắc viễn thám không gian.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="p-3.5 bg-[#131217] border-b border-[#222224] flex items-start space-x-3.5">
+                    <span class="w-3 h-3 rounded-full bg-white mt-1 flex-shrink-0"></span>
+                    <div>
+                        <div class="text-xs font-mono font-bold text-white flex items-center space-x-2">
+                            <span>3. THE GEODETIC M-FRAME</span>
+                            <span class="text-[11px] text-slate-300 font-mono-tabular">stroke 2.4px</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Khung chữ M màu trắng bạc kỹ thuật thể hiện chữ Mê Kông và địa hình hẻm núi Lan Thương vững chãi.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="p-3.5 bg-[#131217] border-b border-[#222224] flex items-start space-x-3.5">
+                    <span class="w-3 h-3 rounded-full bg-emerald-400 mt-1 flex-shrink-0"></span>
+                    <div>
+                        <div class="text-xs font-mono font-bold text-white flex items-center space-x-2">
+                            <span>4. THE THALWEG WATER FLOW PULSE</span>
+                            <span class="text-[11px] text-emerald-400 font-mono-tabular">y: 20 &rarr; 26</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Đoạn xung thẳng đứng màu xanh lục bảo thoát ra từ đáy thung lũng, đại diện cho dòng chảy thực tế hội tụ về Biển Đông và Đồng bằng Sông Cửu Long.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Strict Do's & Don'ts -->
+        <div class="space-y-4 pt-4">
+            <h3 class="text-sm font-mono font-bold text-white font-medium" style="font-size: 1.25rem; line-height: 1.3;">Geometric Integrity (Do's &amp; Don'ts)</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-xs font-mono">
+                <!-- 1. Pass -->
+                <div class="p-3 bg-[#131217] border border-emerald-800/80 rounded flex flex-col items-center text-center space-y-2">
+                    <div class="w-12 h-12 flex items-center justify-center">
+                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                            <line x1="16" y1="4" x2="7" y2="25" stroke="#38bdf8" stroke-width="1.2" opacity="0.35"/>
+                            <line x1="16" y1="4" x2="25" y2="25" stroke="#38bdf8" stroke-width="1.2" opacity="0.35"/>
+                            <path d="M7 25V11L16 20L25 11V25" stroke="#f8fafc" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16 7L16 12" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M16 20L16 26" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+                            <circle cx="16" cy="5" r="1.5" fill="#38bdf8"/>
+                        </svg>
+                    </div>
+                    <span class="text-emerald-400 font-bold text-[11px]">DO: Canonical</span>
+                </div>
+
+                <!-- 2. Fail: Squish -->
+                <div class="p-3 bg-[#131217] border border-rose-900/60 rounded flex flex-col items-center text-center space-y-2">
+                    <div class="w-12 h-12 flex items-center justify-center">
+                        <svg width="36" height="20" viewBox="0 0 32 32" fill="none">
+                            <path d="M7 25V11L16 20L25 11V25" stroke="#f8fafc" stroke-width="2.4"/>
+                            <circle cx="16" cy="5" r="1.5" fill="#38bdf8"/>
+                        </svg>
+                    </div>
+                    <span class="text-rose-400 font-medium text-[11px]">DON'T: Squish</span>
+                </div>
+
+                <!-- 3. Fail: Glow -->
+                <div class="p-3 bg-[#131217] border border-rose-900/60 rounded flex flex-col items-center text-center space-y-2">
+                    <div class="w-12 h-12 flex items-center justify-center">
+                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="#ef4444" stroke-width="4">
+                            <path d="M7 25V11L16 20L25 11V25" stroke="#38bdf8" stroke-width="2.4"/>
+                            <circle cx="16" cy="5" r="2" fill="#38bdf8"/>
+                        </svg>
+                    </div>
+                    <span class="text-rose-400 font-medium text-[11px]">DON'T: Neon Glow</span>
+                </div>
+
+                <!-- 4. Fail: Rotate -->
+                <div class="p-3 bg-[#131217] border border-rose-900/60 rounded flex flex-col items-center text-center space-y-2">
+                    <div class="w-12 h-12 flex items-center justify-center rotate-45">
+                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                            <path d="M7 25V11L16 20L25 11V25" stroke="#f8fafc" stroke-width="2.4"/>
+                            <circle cx="16" cy="5" r="1.5" fill="#38bdf8"/>
+                        </svg>
+                    </div>
+                    <span class="text-rose-400 font-medium text-[11px]">DON'T: Rotate</span>
+                </div>
+
+                <!-- 5. Fail: Rainbow Gradient -->
+                <div class="p-3 bg-[#131217] border border-rose-900/60 rounded flex flex-col items-center text-center space-y-2">
+                    <div class="w-12 h-12 flex items-center justify-center">
+                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                            <path d="M7 25V11L16 20L25 11V25" stroke="#f87171" stroke-width="2.4"/>
+                            <circle cx="16" cy="5" r="1.5" fill="#38bdf8"/>
+                        </svg>
+                    </div>
+                    <span class="text-rose-400 font-medium text-[11px]">DON'T: Altered Hues</span>
+                </div>
+
+                <!-- 6. Fail: Low Contrast -->
+                <div class="p-3 bg-[#1e293b] border border-rose-900/60 rounded flex flex-col items-center text-center space-y-2">
+                    <div class="w-12 h-12 flex items-center justify-center opacity-30">
+                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                            <path d="M7 25V11L16 20L25 11V25" stroke="#475569" stroke-width="2.4"/>
+                        </svg>
+                    </div>
+                    <span class="text-rose-400 font-medium text-[11px]">DON'T: Low Contrast</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+     * 5. CHAPTER 3: OFFICIAL BRAND LOCKUPS
+     * -------------------------------------------------------------------- -->
+    <section id="lockups" class="px-6 lg:px-12 py-16 border-b border-[#222224] space-y-10">
+        <div class="space-y-2">
+            <span class="text-xs font-mono text-sky-400 font-semibold">Brand Lockups</span>
+            <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight" style="font-size: clamp(1.6rem, 2.5vw, 2.2rem); line-height: 1.2;">Official Brand Lockup Standards</h2>
+            <p class="text-sm text-slate-400 max-w-2xl">
+                Standardized configurations for web interfaces, physical field tablets, publications, and hardware branding.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Lockup 1: Primary Horizontal Flight Bar Lockup -->
+            <div class="p-6 bg-[#131217] border border-[#222224] rounded-lg flex flex-col justify-between space-y-6">
+                <div>
+                    <div class="flex items-center justify-between border-b border-[#222224] pb-3 mb-6">
+                        <span class="font-bold text-sm text-white font-mono">1. PRIMARY HORIZONTAL LOCKUP</span>
+                        <span class="text-xs font-mono text-sky-400">Web Flight Bar Standard</span>
+                    </div>
+
+                    <!-- Render Area -->
+                    <div class="p-6 bg-[#100f13] rounded flex items-center space-x-3.5">
+                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" class="flex-shrink-0">
+                            <line x1="16" y1="4" x2="7" y2="25" stroke="#38bdf8" stroke-width="1.2" opacity="0.35"/>
+                            <line x1="16" y1="4" x2="25" y2="25" stroke="#38bdf8" stroke-width="1.2" opacity="0.35"/>
+                            <path d="M7 25V11L16 20L25 11V25" stroke="#f8fafc" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16 7L16 12" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M16 20L16 26" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+                            <circle cx="16" cy="5" r="1.5" fill="#38bdf8"/>
+                        </svg>
+                        <div class="flex items-baseline space-x-2">
+                            <strong class="text-base font-extrabold text-white tracking-widest font-mono">MEKSAT</strong>
+                            <span class="text-xs font-semibold text-sky-400 font-mono">Mekong Sense</span>
+                            <span class="text-slate-600 hidden sm:inline">|</span>
+                            <span class="text-xs text-slate-400 hidden sm:inline">Mekong Spaceborne Analytics &amp; Telemetry</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-[#222224] text-xs font-mono">
+                    <span class="text-slate-400">Min Width: 200px</span>
+                    <button class="px-2.5 py-1 rounded bg-[#212023] hover:bg-[#2c2b30] text-sky-400 border border-[#333338] copy-trigger" data-target="svg-horizontal">
+                        Copy SVG
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lockup 2: Vertical Stacked Brand Seal -->
+            <div class="p-6 bg-[#131217] border border-[#222224] rounded-lg flex flex-col justify-between space-y-6">
+                <div>
+                    <div class="flex items-center justify-between border-b border-[#222224] pb-3 mb-6">
+                        <span class="font-bold text-sm text-white font-mono">2. STACKED MONOGRAPH LOCKUP</span>
+                        <span class="text-xs font-mono text-emerald-400">Publication &amp; Cover</span>
+                    </div>
+
+                    <!-- Render Area -->
+                    <div class="p-6 bg-[#100f13] rounded flex flex-col items-center text-center space-y-2.5">
+                        <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+                            <line x1="16" y1="4" x2="7" y2="25" stroke="#38bdf8" stroke-width="1.2" opacity="0.35"/>
+                            <line x1="16" y1="4" x2="25" y2="25" stroke="#38bdf8" stroke-width="1.2" opacity="0.35"/>
+                            <path d="M7 25V11L16 20L25 11V25" stroke="#f8fafc" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16 7L16 12" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M16 20L16 26" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+                            <circle cx="16" cy="5" r="1.5" fill="#38bdf8"/>
+                        </svg>
+                        <div>
+                            <strong class="text-lg font-extrabold text-white tracking-widest font-mono block">MEKSAT</strong>
+                            <span class="text-[11px] text-slate-400 font-mono">Southern Institute of Water Resources Research</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-[#222224] text-xs font-mono">
+                    <span class="text-slate-400">Min Height: 64px</span>
+                    <button class="px-2.5 py-1 rounded bg-[#212023] hover:bg-[#2c2b30] text-emerald-400 border border-[#333338] copy-trigger" data-target="svg-stacked">
+                        Copy SVG
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+     * 6. CHAPTER 4: CANONICAL COLOR ARCHITECTURE
+     * -------------------------------------------------------------------- -->
+    <section id="palette" class="px-6 lg:px-12 py-16 border-b border-[#222224] space-y-10">
+        <div class="space-y-2">
+            <span class="text-xs font-mono text-sky-400 font-semibold">Color Tokens</span>
+            <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight" style="font-size: clamp(1.6rem, 2.5vw, 2.2rem); line-height: 1.2;">Color Architecture &amp; The &lt;3% Budget</h2>
+            <p class="text-sm text-slate-400 max-w-2xl">
+                Colors are reserved for telemetry and physical ground truths. The chrome shell remains disciplined monochrome dark gray.
+            </p>
+        </div>
+
+        <!-- Color Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 font-mono text-xs">
+            <!-- 1. Ground Canvas -->
+            <div class="p-4 bg-[#131217] border border-[#222224] rounded space-y-3">
+                <div class="h-20 rounded bg-[#171719] flex items-end p-2.5">
+                    <span class="text-[11px] text-slate-400">--ground</span>
+                </div>
+                <div>
+                    <strong class="text-white text-sm block">Deep Ground Canvas</strong>
+                    <span class="text-slate-400 text-[11px]">HEX: #171719 · RGB: 23, 23, 25</span>
+                </div>
+                <div class="text-[11px] text-slate-400 pt-2 border-t border-[#222224]">
+                    Used for primary application background.
+                </div>
+            </div>
+
+            <!-- 2. Surface Chassis -->
+            <div class="p-4 bg-[#131217] border border-[#222224] rounded space-y-3">
+                <div class="h-20 rounded bg-[#131217] flex items-end p-2.5">
+                    <span class="text-[11px] text-slate-400">--surface</span>
+                </div>
+                <div>
+                    <strong class="text-white text-sm block">Chrome Surface</strong>
+                    <span class="text-slate-400 text-[11px]">HEX: #131217 · RGB: 19, 18, 23</span>
+                </div>
+                <div class="text-[11px] text-slate-400 pt-2 border-t border-[#222224]">
+                    Used for Flight Bar, Rail, and Dock chrome.
+                </div>
+            </div>
+
+            <!-- 3. Spaceborne SWOT Cyan -->
+            <div class="p-4 bg-[#131217] border border-[#222224] rounded space-y-3">
+                <div class="h-20 rounded bg-[#38bdf8] flex items-end p-2.5">
+                    <span class="text-[11px] text-slate-950 font-bold">--accent</span>
+                </div>
+                <div>
+                    <strong class="text-sky-400 text-sm block">SWOT Spaceborne Cyan</strong>
+                    <span class="text-slate-400 text-[11px]">HEX: #38bdf8 · 9.2:1 (AAA)</span>
+                </div>
+                <div class="text-[11px] text-slate-400 pt-2 border-t border-[#222224]">
+                    Primary telemetry &amp; 1px selection move.
+                </div>
+            </div>
+
+            <!-- 4. Thalweg Stable Green -->
+            <div class="p-4 bg-[#131217] border border-[#222224] rounded space-y-3">
+                <div class="h-20 rounded bg-[#34d399] flex items-end p-2.5">
+                    <span class="text-[11px] text-slate-950 font-bold">--positive</span>
+                </div>
+                <div>
+                    <strong class="text-emerald-400 text-sm block">Thalweg SOTA Green</strong>
+                    <span class="text-slate-400 text-[11px]">HEX: #34d399 · 8.4:1 (AAA)</span>
+                </div>
+                <div class="text-[11px] text-slate-400 pt-2 border-t border-[#222224]">
+                    Operational stability &amp; verified stations.
+                </div>
+            </div>
+        </div>
+
+        <!-- Token Quick Copy Action -->
+        <div class="p-4 bg-[#131217] border border-[#222224] rounded flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 text-xs font-mono">
+            <div class="flex items-center space-x-2 text-slate-300">
+                <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                <span>W3C Design Token Compliant (CSS Variables &amp; Tailwind Format)</span>
+            </div>
+            <button id="btnCopyTokens" class="px-3.5 py-1.5 rounded bg-[#212023] hover:bg-[#2c2b30] text-sky-400 border border-[#333338] transition-colors">
+                Copy Full CSS :root Tokens
+            </button>
+        </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+     * 7. CHAPTER 5: TYPOGRAPHY & TABULAR RIGOR
+     * -------------------------------------------------------------------- -->
+    <section id="typography" class="px-6 lg:px-12 py-16 border-b border-[#222224] space-y-10">
+        <div class="space-y-2">
+            <span class="text-xs font-mono text-sky-400 font-semibold">Typography Matrix</span>
+            <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight" style="font-size: clamp(1.6rem, 2.5vw, 2.2rem); line-height: 1.2;">Typography Matrix &amp; Tabular Standards</h2>
+            <p class="text-sm text-slate-400 max-w-2xl">
+                Dual font pairing: <strong>Public Sans</strong> for editorial hierarchy and <strong>IBM Plex Mono</strong> with tabular figures for physical measurements.
+            </p>
+        </div>
+
+        <!-- Live Specimen Tester -->
+        <div class="p-6 bg-[#131217] border border-[#222224] rounded-lg space-y-6">
+            <div class="flex items-center justify-between border-b border-[#222224] pb-3 text-xs font-mono">
+                <span class="font-bold text-white">INTERACTIVE SPECIMEN TESTER</span>
+                <span class="text-slate-400">Strict &ge; 11px Hard Floor</span>
+            </div>
+
+            <!-- Type specimens -->
+            <div class="space-y-6">
+                <!-- Heading Step -->
+                <div class="space-y-1">
+                    <span class="text-[11px] font-mono text-slate-400">Public Sans · 700 Bold · 32px</span>
+                    <div class="text-2xl sm:text-3xl font-bold text-white tracking-tight" contenteditable="true" spellcheck="false">
+                        Mekong Spaceborne Hydro-Geodesy
+                    </div>
+                </div>
+
+                <!-- Body Step -->
+                <div class="space-y-1">
+                    <span class="text-[11px] font-mono text-slate-400">Public Sans · 400 Regular · 14px</span>
+                    <p class="text-sm text-slate-300 leading-relaxed max-w-3xl" contenteditable="true" spellcheck="false">
+                        Surface water elevations delineated via Sentinel-1 SAR dual-polarization and SWOT KaRIn wide-swath interferometry. PCHIP volume derivatives enforce mass balance closure without inversion mismatch.
+                    </p>
+                </div>
+
+                <!-- Tabular Figures Step -->
+                <div class="space-y-1 pt-4 border-t border-[#222224]">
+                    <span class="text-[11px] font-mono text-sky-400">IBM Plex Mono · Tabular Numbers · font-variant-numeric: tabular-nums</span>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-[#100f13] rounded font-mono-tabular text-xs">
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">WATER LEVEL H:</span>
+                            <strong class="text-sky-300 text-sm">599.25 masl</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">OUTFLOW Q*OUT:</span>
+                            <strong class="text-amber-400 text-sm">1,943.00 m³/s</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">STORAGE VOLUME V:</span>
+                            <strong class="text-white text-sm">1,031.50 MCM</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">MASS RESIDUAL:</span>
+                            <strong class="text-emerald-400 text-sm">0.00 m³/s</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+     * 8. CHAPTER 6: FIELD GEAR & APPLICATION MOCKUPS
+     * -------------------------------------------------------------------- -->
+    <section id="applications" class="px-6 lg:px-12 py-16 border-b border-[#222224] space-y-10">
+        <div class="space-y-2">
+            <span class="text-xs font-mono text-sky-400 font-semibold">Physical Field Gear</span>
+            <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight" style="font-size: clamp(1.6rem, 2.5vw, 2.2rem); line-height: 1.2;">Physical Applications &amp; Field Systems</h2>
+            <p class="text-sm text-slate-400 max-w-2xl">
+                Brand identity deployed on ruggedized hydrological tablets, field researcher credentials, and institutional monographs.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-mono text-xs">
+            <!-- Mockup Card 1: Field ID Credential -->
+            <div class="space-y-4">
+                <span class="text-sky-400 font-bold block">1. FIELD RESEARCHER ID BADGE</span>
+                <div class="h-56 bg-[#171719] border border-[#2c2b30] rounded-lg p-4 flex flex-col justify-between relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+                            <line x1="16" y1="4" x2="7" y2="25" stroke="#38bdf8" stroke-width="1.2" opacity="0.35"/>
+                            <line x1="16" y1="4" x2="25" y2="25" stroke="#38bdf8" stroke-width="1.2" opacity="0.35"/>
+                            <path d="M7 25V11L16 20L25 11V25" stroke="#f8fafc" stroke-width="2.4"/>
+                            <circle cx="16" cy="5" r="1.5" fill="#38bdf8"/>
+                        </svg>
+                        <span class="text-[11px] text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-1.5 py-0.5 rounded">NFC SECURE</span>
+                    </div>
+                    <div>
+                        <strong class="text-white text-sm block">DR. NGUYEN VAN THUY</strong>
+                        <span class="text-slate-400 text-[11px] block mt-0.5">CHIEF HYDRO-GEODETIST</span>
+                        <span class="text-sky-400 text-[11px] block font-mono-tabular">ID: MEKSAT-VN-2026-08</span>
+                    </div>
+                    <div class="pt-2 border-t border-[#222224] flex items-center justify-between text-[11px] text-slate-400">
+                        <span>Mekong Sense SPACEBORNE DIV</span>
+                        <span>VALID: 2026-2030</span>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-normal">
+                    Frosted acrylic smart NFC credential for transboundary survey teams.
+                </p>
+            </div>
+
+            <!-- Mockup Card 2: Rugged Field Survey Tablet -->
+            <div class="space-y-4">
+                <span class="text-emerald-400 font-bold block">2. FIELD TABLET HUD</span>
+                <div class="h-56 bg-[#0c0d10] border-4 border-[#222224] rounded-lg p-3 flex flex-col justify-between relative">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="text-sky-400 font-bold">MEKSAT HUD v3.2</span>
+                        <span class="text-emerald-400">GPS: LOCK (18 SV)</span>
+                    </div>
+                    <div class="p-2 bg-transparent border-t border-b border-[#222224] space-y-1">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Station:</span>
+                            <span class="text-white font-bold">Jinghong Tailwater</span>
+                        </div>
+                        <div class="flex justify-between font-mono-tabular">
+                            <span class="text-slate-400">WSE (SWOT):</span>
+                            <span class="text-sky-300">599.25 m</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-[11px] text-slate-400">
+                        <span>IP68 Ruggedized</span>
+                        <span class="text-sky-400">100% Sunlight Read</span>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-normal">
+                    High-contrast sunlight readable interface for boats and river survey towers.
+                </p>
+            </div>
+
+            <!-- Mockup Card 3: Research Report Monograph -->
+            <div class="space-y-4">
+                <span class="text-amber-400 font-bold block">3. TECHNICAL MONOGRAPH</span>
+                <div class="h-56 bg-[#1a191e] border border-[#2c2b30] rounded p-4 flex flex-col justify-between relative">
+                    <div>
+                        <span class="text-[11px] text-slate-400 block">Mekong Sense SCIENTIFIC SERIES · NO. 84</span>
+                        <strong class="text-white text-xs block mt-1 leading-snug">MEKSAT: Mekong Spaceborne Analytics &amp; Telemetry Manual</strong>
+                    </div>
+                    <div class="my-auto flex justify-center py-2">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <path d="M7 25V11L16 20L25 11V25" stroke="#f8fafc" stroke-width="2.4"/>
+                            <circle cx="16" cy="5" r="1.5" fill="#38bdf8"/>
+                        </svg>
+                    </div>
+                    <div class="text-[11px] text-slate-400 border-t border-[#2c2b30] pt-1.5 flex justify-between">
+                        <span>EGM2008 / WGS84</span>
+                        <span>OCT 2026</span>
+                    </div>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-normal">
+                    Institutional hardcover technical specification and white paper format.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+     * 9. CHAPTER 7: DIGITAL ASSET DOWNLOAD CENTER
+     * -------------------------------------------------------------------- -->
+    <section id="downloads" class="px-6 lg:px-12 py-16 space-y-10">
+        <div class="space-y-2">
+            <span class="text-xs font-mono text-sky-400 font-semibold">Asset Downloads</span>
+            <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight" style="font-size: clamp(1.6rem, 2.5vw, 2.2rem); line-height: 1.2;">Digital Asset Kit Downloads</h2>
+            <p class="text-sm text-slate-400 max-w-2xl">
+                Ready-to-use vector assets, SVG symbols, and token definitions for developers, cartographers, and publishers.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
+            <!-- Asset 1: Primary Vector SVG -->
+            <div class="p-5 bg-[#131217] border border-[#222224] rounded-lg flex flex-col justify-between space-y-4">
+                <div>
+                    <strong class="text-white text-sm block">1. MEKSAT Symbol (SVG)</strong>
+                    <span class="text-slate-400 text-[11px] mt-1 block">32&times;32 Vector Icon · Precision Monoline</span>
+                </div>
+                <button id="btnDlSymbolSvg" class="w-full py-2 bg-[#212023] hover:bg-[#2c2b30] text-sky-400 rounded border border-[#333338] transition-colors flex items-center justify-center space-x-1.5">
+                    <span>Download SVG</span>
+                    <span>&darr;</span>
+                </button>
+            </div>
+
+            <!-- Asset 2: Horizontal Lockup SVG -->
+            <div class="p-5 bg-[#131217] border border-[#222224] rounded-lg flex flex-col justify-between space-y-4">
+                <div>
+                    <strong class="text-white text-sm block">2. Flight Bar Lockup (SVG)</strong>
+                    <span class="text-slate-400 text-[11px] mt-1 block">Mark + MEKSAT Mekong Sense Vector typography</span>
+                </div>
+                <button id="btnDlLockupSvg" class="w-full py-2 bg-[#212023] hover:bg-[#2c2b30] text-emerald-400 rounded border border-[#333338] transition-colors flex items-center justify-center space-x-1.5">
+                    <span>Download SVG</span>
+                    <span>&darr;</span>
+                </button>
+            </div>
+
+            <!-- Asset 3: Design Tokens JSON -->
+            <div class="p-5 bg-[#131217] border border-[#222224] rounded-lg flex flex-col justify-between space-y-4">
+                <div>
+                    <strong class="text-white text-sm block">3. Brand Tokens (JSON)</strong>
+                    <span class="text-slate-400 text-[11px] mt-1 block">Colors, font stacks, rhythm metrics</span>
+                </div>
+                <button id="btnDlTokensJson" class="w-full py-2 bg-[#212023] hover:bg-[#2c2b30] text-slate-200 rounded border border-[#333338] transition-colors flex items-center justify-center space-x-1.5">
+                    <span>Download JSON</span>
+                    <span>&darr;</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- -----------------------------------------------------------------------
+     * 10. FOOTER
+     * -------------------------------------------------------------------- -->
+    <footer class="h-14 bg-[#131217] border-t border-[#222224] px-6 lg:px-12 flex items-center justify-between text-xs font-mono text-slate-400">
+        <div>
+            MEKSAT • Mekong Spaceborne Analytics &amp; Telemetry
+        </div>
+        <div class="text-right">
+            Southern Institute of Water Resources Research (Mekong Sense)
+        </div>
+    </footer>
+
+    <!-- -----------------------------------------------------------------------
+     * SCRIPT: INTERACTIVE EXPORT CONTROLLER & ASSET DOWNLOAD ENGINE
+     * -------------------------------------------------------------------- -->
+    <script>
+        // Raw SVG Asset Definitions
+        const SVG_SYMBOL = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <line x1="16" y1="4" x2="7" y2="25" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.35"/>
+  <line x1="16" y1="4" x2="25" y2="25" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.35"/>
+  <path d="M7 25V11L16 20L25 11V25" stroke="#f8fafc" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M16 7L16 12" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M16 20L16 26" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="16" cy="5" r="1.5" fill="#38bdf8"/>
+</svg>`;
+
+        const SVG_HORIZONTAL = `<svg width="240" height="32" viewBox="0 0 240 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(0, 0)">
+    <line x1="16" y1="4" x2="7" y2="25" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.35"/>
+    <line x1="16" y1="4" x2="25" y2="25" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" opacity="0.35"/>
+    <path d="M7 25V11L16 20L25 11V25" stroke="#f8fafc" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M16 7L16 12" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+    <path d="M16 20L16 26" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="16" cy="5" r="1.5" fill="#38bdf8"/>
+  </g>
+  <text x="42" y="22" font-family="'IBM Plex Mono', monospace" font-size="14" font-weight="800" letter-spacing="2" fill="#ffffff">MEKSAT</text>
+  <text x="122" y="22" font-family="'IBM Plex Mono', monospace" font-size="10" font-weight="600" fill="#38bdf8">Mekong Sense</text>
+</svg>`;
+
+        const CSS_TOKENS = `:root {
+  --ground:          #171719;
+  --surface:         #131217;
+  --surface-raised:  #212023;
+  --surface-hover:   #26252a;
+  --border:          #222224;
+  --rule:            #1b1a1f;
+  --control:         #2c2b30;
+  --text-primary:    #ffffff;
+  --text-secondary:  #cbd5e1;
+  --text-muted:      #8a8c92;
+  --accent:          #38bdf8;
+  --positive:        #34d399;
+  --warning:         #d9a441;
+  --negative:        #e5566f;
+  --font-sans:       'Public Sans', sans-serif;
+  --font-mono:       'IBM Plex Mono', monospace;
+}`;
+
+        const TOKENS_JSON = JSON.stringify({
+          brand: "MEKSAT",
+          institution: "Mekong Sense",
+          archetype: "Data Terminal",
+          tokens: {
+            ground: "#171719",
+            surface: "#131217",
+            raised: "#212023",
+            border: "#222224",
+            rule: "#1b1a1f",
+            control: "#2c2b30",
+            text: "#ffffff",
+            muted: "#8a8c92",
+            accent: "#38bdf8",
+            positive: "#34d399",
+            warning: "#d9a441",
+            negative: "#e5566f"
+          },
+          typography: {
+            display: "Public Sans",
+            telemetry: "IBM Plex Mono",
+            floor: "11px"
+          }
+        }, null, 2);
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2200);
+        }
+
+        function downloadFile(filename, content, type = 'text/plain') {
+            const blob = new Blob([content], { type: `${type};charset=utf-8` });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Downloaded: ${filename}`);
+        }
+
+        // Copy buttons handler
+        document.querySelectorAll('.copy-trigger').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.dataset.target;
+                const text = target === 'svg-horizontal' ? SVG_HORIZONTAL : SVG_SYMBOL;
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('SVG vector copied to clipboard!');
+                }).catch(() => {
+                    showToast('Failed to copy');
+                });
+            });
+        });
+
+        document.getElementById('btnCopyTokens')?.addEventListener('click', () => {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(CSS_TOKENS).then(() => {
+                    showToast('CSS :root tokens copied!');
+                }).catch(() => {
+                    showToast('CSS :root tokens copied!');
+                });
+            } else {
+                showToast('CSS :root tokens copied!');
+            }
+        });
+
+        // Download buttons
+        document.getElementById('btnDlSymbolSvg')?.addEventListener('click', () => {
+            downloadFile('meksat_symbol_monoline.svg', SVG_SYMBOL, 'image/svg+xml');
+        });
+
+        document.getElementById('btnDlLockupSvg')?.addEventListener('click', () => {
+            downloadFile('meksat_horizontal_lockup.svg', SVG_HORIZONTAL, 'image/svg+xml');
+        });
+
+        document.getElementById('btnDlTokensJson')?.addEventListener('click', () => {
+            downloadFile('meksat_design_tokens.json', TOKENS_JSON, 'application/json');
+        });
+
+        // Active Navigation Scroll Spy
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.brand-nav-link');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(s => {
+                const top = s.offsetTop - 100;
+                if (window.scrollY >= top) {
+                    current = s.getAttribute('id');
+                }
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        }, { passive: true });
+    </script>
+</body>
+</html>

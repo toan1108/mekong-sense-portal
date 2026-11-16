@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>MEKSAT Earth Observation — 1:1 Geo-Surveyor & Altimetry Inspector</title>
+ <!-- Google Fonts: Public Sans & IBM Plex Mono (Data Terminal Standard) -->
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+ <!-- Leaflet CSS & JS -->
+ <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+ <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+ <!-- Canonical SWORD Reaches & Altimetry Ground Truth Data -->
+ <script src="surveyor_data.js?v=20261012_yali_522m_crest_v9"></script>
+ <!-- Multi-Temporal Satellite Overlays & Multi-Sensor Fusion Data -->
+ <script src="satellite_overlays_data.js?v=20261013_yali_mosaic_v10"></script>
+ <style>
+ :root {
+ --ground: #131217;
+ --surface: #19191e;
+ --surface-raised: #22222a;
+ --surface-hover: #292934;
+ --border: #282834;
+ --border-subtle: #202028;
+ --rule: #1e1e26;
+ --control: #2b2b36;
+ --accent: #38bdf8;
+ --accent-hover: #0284c7;
+ --emerald: #10b981;
+ --amber: #f59e0b;
+ --rose: #ef4444;
+ --text: #f1f5f9;
+ --text-muted: #94a3b8;
+ --text-subtle: #64748b;
+ --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+ --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+ }
+ * { box-sizing: border-box; margin: 0; padding: 0; }
+ body { font-family: var(--font-sans); display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: var(--ground); color: var(--text); }
+ .app-shell { display: flex; flex: 1; height: calc(100vh - 44px); overflow: hidden; position: relative; }
+ #sidebar { width: 440px; background: var(--surface); padding: 16px; display: flex; flex-direction: column; gap: 12px; border-right: 1px solid var(--border); overflow-y: auto; z-index: 1000; box-shadow: none; flex-shrink: 0; }
+ #sidebar::-webkit-scrollbar { width: 6px; }
+ #sidebar::-webkit-scrollbar-thumb { background: #33333f; border-radius: 3px; }
+ #map { flex: 1; height: 100%; position: relative; background: #09090b; }
+ 
+ h1 { font-size: 15px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+ .badge { background: #0284c7; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: normal; }
+ .section-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
+ .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+ 
+ button { background: #334155; color: #f8fafc; border: 1px solid #475569; padding: 7px 11px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+ button:hover { background: #475569; border-color: #64748b; }
+ button.active { background: #0284c7; border-color: #38bdf8; color: #fff; }
+ button.success { background: #166534; border-color: #22c55e; }
+ button.success:hover { background: #15803d; }
+ button.danger { background: #991b1b; border-color: #ef4444; }
+ button.danger:hover { background: #b91c1c; }
+ 
+ .tab-nav { display: flex; border-bottom: 1px solid #334155; padding-bottom: 4px; gap: 6px; }
+ .tab-btn { flex: 1; text-align: center; justify-content: center; background: #0f172a; border-color: #334155; color: #94a3b8; }
+ .tab-btn.active { background: #0369a1; border-color: #38bdf8; color: #fff; }
+ 
+ .info-card { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 10px; font-size: 11px; }
+ .coord-display { font-family: "Courier New", Courier, monospace; color: #38bdf8; font-weight: bold; font-size: 12px; }
+ .mouse-coords { position: absolute; bottom: 20px; right: 20px; z-index: 999; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(4px); padding: 8px 14px; border-radius: 6px; border: 1px solid #334155; font-family: monospace; font-size: 12px; color: #38bdf8; pointer-events: none; }
+ 
+ /* Stats Grid */
+ .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+ .stat-box { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 8px; text-align: center; }
+ .stat-val { font-size: 18px; font-weight: bold; }
+ .stat-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; margin-top: 2px; }
+ 
+ /* Layer toggles */
+ .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; background: #0f172a; border: 1px solid #334155; border-radius: 4px; margin-bottom: 5px; font-size: 11px; }
+ .layer-item label { display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; }
+ .layer-item input[type="checkbox"] { cursor: pointer; accent-color: #0284c7; width: 14px; height: 14px; }
+ .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+ .legend-line { width: 16px; height: 3px; display: inline-block; }
+ 
+ /* Reach / Point inspector */
+ .item-list { max-height: 150px; overflow-y: auto; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 4px; font-size: 11px; }
+ .list-row { padding: 4px 6px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+ .list-row:hover { background: #1e293b; }
+ .tag-wl { background: #064e3b; color: #34d399; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: bold; }
+ .tag-ex { background: #450a0a; color: #f87171; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: bold; }
+ .tag-icesat { background: #713f12; color: #fde047; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: bold; }
+ .tag-radar { background: #500724; color: #f472b6; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: bold; border: 1px solid #db2777; }
+ 
+ textarea { width: 100%; height: 110px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #4ade80; font-family: "Courier New", Courier, monospace; font-size: 11px; padding: 8px; resize: none; }
+ .crosshair { cursor: crosshair !important; }
+ 
+ /* Custom Leaflet Popups */
+ .leaflet-popup-content-wrapper { background: #0f172a !important; color: #f8fafc !important; border: 1px solid #38bdf8 !important; border-radius: 8px !important; box-shadow: 0 10px 25px rgba(0,0,0,0.7) !important; font-size: 11px !important; }
+ .leaflet-popup-tip { background: #0f172a !important; border: 1px solid #38bdf8 !important; }
+ .popup-title { font-size: 13px; font-weight: bold; color: #38bdf8; border-bottom: 1px solid #334155; padding-bottom: 4px; margin-bottom: 6px; }
+ .popup-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+ .popup-label { color: #94a3b8; }
+ .popup-val { font-weight: bold; }
+ .popup-reason { background: #1e293b; border-left: 3px solid #f59e0b; padding: 6px; border-radius: 4px; margin-top: 6px; color: #cbd5e1; font-style: italic; font-size: 10px; line-height: 1.4; }
+
+ /* Satellite Overlays Inspector */
+ .sat-layer-card { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 7px 9px; margin-bottom: 6px; }
+ .sat-layer-header { display: flex; align-items: center; justify-content: space-between; }
+ .sat-layer-header label { display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; font-size: 11px; font-weight: 600; }
+ .slider-container { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 10px; color: #94a3b8; }
+ .slider-container input[type="range"] { flex: 1; accent-color: #38bdf8; height: 4px; cursor: pointer; }
+ .slider-val { width: 32px; text-align: right; font-family: monospace; color: #38bdf8; }
+ </style>
+</head>
+<body>
+ <!-- TOP TERMINAL NAVIGATION FLIGHT BAR (44px) -->
+ <header style="height: 44px; background: #101014; border-bottom: 1px solid var(--border); padding: 0 14px; display: flex; align-items: center; justify-content: space-between; z-index: 1010; flex-shrink: 0; font-family: var(--font-sans);">
+ <div style="display: flex; align-items: center; gap: 10px;">
+ <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
+        <path d="M16 4.5L7 13.5H12L16 9.5L20 13.5H25L16 4.5Z" fill="#38bdf8"/>
+        <circle cx="16" cy="4.5" r="1.1" fill="#ffffff"/>
+        <path d="M6 18.5C10.5 15.5 13.5 21.5 16 21.5C18.5 21.5 21.5 15.5 26 18.5" stroke="#f8fafc" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M6 24.5C10.5 21.5 13.5 27.5 16 27.5C18.5 27.5 21.5 21.5 26 24.5" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+ <div style="display: flex; align-items: center; gap: 8px;">
+ <span style="font-weight: 700; color: #ffffff; font-size: 12px; letter-spacing: 0.04em;">MEKSAT EARTH OBSERVATION</span>
+ <span style="color: #475569;">/</span>
+ <span style="font-weight: 600; color: #38bdf8; font-size: 12px; font-family: var(--font-mono);">1:1 GEO-SURVEYOR</span>
+ <span style="font-size: 10px; color: #64748b; font-family: var(--font-mono);">v3.2</span>
+ </div>
+ <a href="portal_multiwindow_terminal.html?branch=01" style="margin-left: 10px; padding: 3px 8px; border-radius: 4px; background: #1c1b22; border: 1px solid #2e2d38; color: #94a3b8; font-size: 11px; text-decoration: none; display: flex; align-items: center; gap: 4px; transition: all 120ms;" onmouseover="this.style.color='#ffffff'; this.style.borderColor='#38bdf8';" onmouseout="this.style.color='#94a3b8'; this.style.borderColor='#2e2d38';">
+ <span>&larr;</span> <span>Workbench</span>
+ </a>
+ </div>
+
+ <!-- Center: Dynamic Dam Switcher Pills -->
+ <div id="damSelectorBar" style="display: flex; gap: 6px;"></div>
+
+ <!-- Right: Telemetry Indicators & Authors Credit -->
+ <div style="display: flex; align-items: center; gap: 12px; font-size: 11px; font-family: var(--font-mono);">
+ <div style="display: flex; align-items: center; gap: 4px; color: #94a3b8;">
+ <span>LAKE ID:</span>
+ <strong style="color: #ffffff;" id="statLakeIdTop">--</strong>
+ </div>
+ <div style="display: flex; align-items: center; gap: 4px; color: #94a3b8;">
+ <span>FSL / NPL:</span>
+ <strong style="color: #f59e0b;" id="statMndbtTop">--</strong>
+ </div>
+ <div style="display: flex; align-items: center; gap: 4px; color: #94a3b8;">
+ <span>WSE:</span>
+ <strong style="color: #38bdf8;" id="statWseTop">--</strong>
+ </div>
+ <div style="display: flex; align-items: center; gap: 4px; color: #64748b; border-left: 1px solid #282834; padding-left: 10px;">
+ <span>Authors:</span>
+ <span style="color: #cbd5e1;">Pham Toan & Minh Tam</span>
+ </div>
+ </div>
+ </header>
+
+ <div class="app-shell">
+ <div id="sidebar">
+ <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+ <div style="display: flex; align-items: center; gap: 6px;">
+ <span style="font-weight: 700; color: #38bdf8; font-size: 13px; letter-spacing: 0.03em; font-family: var(--font-mono);">SURVEYOR DOCK</span>
+ <span class="badge" id="currentDamBadge" style="background: #252430; border: 1px solid #3c3b4a; color: #38bdf8; font-family: var(--font-mono); font-size: 10px; padding: 2px 7px; border-radius: 4px;">NUOZHADU</span>
+ </div>
+ <span style="font-size: 10px; color: #64748b; font-family: var(--font-mono);">WGS84 / EGM2008</span>
+ </div>
+
+ <!-- Navigation Tabs -->
+ <div class="tab-nav">
+ <button id="tabTransparency" class="tab-btn active" onclick="switchTab('transparency')">
+ Spatial & Altimetry
+ </button>
+ <button id="tabSatellite" class="tab-btn" onclick="switchTab('satellite')">
+ Satellite Overlays
+ </button>
+ <button id="tabCutline" class="tab-btn" onclick="switchTab('cutline')">
+ 1:1 Transect Digitizer
+ </button>
+ </div>
+
+ <!-- TAB 1: TRANSPARENCY & LAYERS -->
+ <div id="panelTransparency" style="display: flex; flex-direction: column; gap: 12px;">
+ <!-- Dashboard Stats -->
+ <div class="stats-grid">
+ <div class="stat-box">
+ <div class="stat-val" id="statReachesWl" style="color: #38bdf8;">7 / 17</div>
+ <div class="stat-label" id="statReachesLabel">Active SWORD Reaches</div>
+ </div>
+ <div class="stat-box">
+ <div class="stat-val" id="statAltAccepted" style="color: #4ade80;">377</div>
+ <div class="stat-label">Valid Altimetry Nodes</div>
+ </div>
+ </div>
+
+ <!-- Step 03 Multi-Sensor Harvest Summary Box -->
+ <div id="step03HarvestCard" class="info-card" style="font-size: 11px; background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; border-left: 3px solid #10b981; padding: 8px 10px; margin-top: 2px; display: none;">
+ <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+ <strong style="color: #34d399;">TIER-2 MULTI-SENSOR REMOTE SENSING HARVEST</strong>
+ <span id="step03TotalScenesBadge" class="badge" style="background: #059669; font-size: 9px;">1,259 SCENES (26-YR RECORD)</span>
+ </div>
+ <div id="step03DetailsText" style="color: #94a3b8; line-height: 1.4; font-size: 10.5px;"></div>
+ </div>
+
+ <!-- Quick View / Extent Buttons -->
+ <div class="section-title">1. Quick Zoom & View Extent</div>
+ <div class="btn-group" id="quickZoomBtns">
+ <!-- Dynamically populated per dam -->
+ </div>
+
+ <!-- Layer Controls -->
+ <div class="section-title">2. Spatial Layers & Features</div>
+ <div id="layerToggles">
+ <div class="layer-item">
+ <label>
+ <input type="checkbox" id="chkCutlines" checked onchange="toggleLayer('cutlines')">
+ <span class="legend-line" style="background: #ef4444; height: 3px;"></span>
+ <strong>Dam Engineering Transects (Cutlines)</strong>
+ </label>
+ </div>
+ <div class="layer-item">
+ <label>
+ <input type="checkbox" id="chkLakePolyNPL" onchange="toggleLayer('lakePolyNPL')">
+ <span class="legend-line" style="background: #f59e0b; height: 3px; border: 1px solid #d97706;"></span>
+ <span>Full Reservoir Envelope (FSL / NPL) (<strong style="color: #fbbf24;">64.5 km²</strong> - Step 03/HAV)</span>
+ </label>
+ </div>
+ <div class="layer-item">
+ <label>
+ <input type="checkbox" id="chkLakePoly" onchange="toggleLayer('lakePoly')">
+ <span class="legend-line" style="background: #0284c7; height: 3px; border: 1px solid #38bdf8;"></span>
+ <span>Altimetry Calm Basin (Hydrodynamic Mask) (<strong style="color: #38bdf8;">Step 02 Altimetry</strong>)</span>
+ </label>
+ </div>
+ <div class="layer-item" id="itemNasaLakeSP" style="display: none;">
+ <label>
+ <input type="checkbox" id="chkNasaLakeSP" onchange="toggleLayer('nasaLakeSP')">
+ <span class="legend-line" style="background: #00ffff; height: 3px; border-bottom: 2px dashed #00ffff;"></span>
+ <span>NASA SWOT LakeSP Polygon (<strong style="color: #00ffff;">50.18 km²</strong>)</span>
+ </label>
+ </div>
+ <div class="layer-item" id="itemReachesWl">
+ <label>
+ <input type="checkbox" id="chkReachesWl" checked onchange="toggleLayer('reachesWl')">
+ <span class="legend-line" style="background: #00ffff; height: 4px;"></span>
+ <span>SWORD Reaches: <strong style="color: #38bdf8;">INCLUDED / WHITELISTED</strong> (<span id="cntReachesWl">7</span>)</span>
+ </label>
+ </div>
+ <div class="layer-item" id="itemReachesEx">
+ <label>
+ <input type="checkbox" id="chkReachesEx" checked onchange="toggleLayer('reachesEx')">
+ <span class="legend-line" style="background: #f87171; height: 3px; border-bottom: 2px dashed #f87171;"></span>
+ <span>SWORD Reaches: <strong style="color: #f87171;">EXCLUDED / FILTERED</strong> (<span id="cntReachesEx">10</span>)</span>
+ </label>
+ </div>
+ <div class="layer-item">
+ <label>
+ <input type="checkbox" id="chkAltAccepted" checked onchange="toggleLayer('altAccepted')">
+ <span class="legend-dot" style="background: #00ffcc; "></span>
+ <span>Altimetry Nodes: <strong style="color: #4ade80;">ACCEPTED / VALIDATED</strong> (<span id="cntAltAcc">377</span>)</span>
+ </label>
+ </div>
+ <div class="layer-item">
+ <label>
+ <input type="checkbox" id="chkAltRejected" checked onchange="toggleLayer('altRejected')">
+ <span class="legend-dot" style="background: #ff4444;"></span>
+ <span>Altimetry Nodes: <strong style="color: #f87171;">FLAGGED / EXCLUDED</strong> (<span id="cntAltRej">113</span>)</span>
+ </label>
+ </div>
+ <div class="layer-item" id="itemFootprintS2">
+ <label>
+ <input type="checkbox" id="chkFootprintS2" onchange="toggleLayer('footprintS2')">
+ <span class="legend-line" style="background: #38bdf8; height: 3px; border-bottom: 2px dashed #0284c7;"></span>
+ <span>Sentinel-2 MGRS Tile Grid: <strong style="color: #38bdf8;">48PZA (100%) vs 48PYA (61%)</strong></span>
+ </label>
+ </div>
+ <div class="layer-item" id="itemFootprintLandsat">
+ <label>
+ <input type="checkbox" id="chkFootprintLandsat" onchange="toggleLayer('footprintLandsat')">
+ <span class="legend-line" style="background: #38bdf8; height: 3px; border-bottom: 2px dashed #0369a1;"></span>
+ <span>Landsat WRS-2 Swath Path: <strong style="color: #38bdf8;">Path 124 (100%) vs Path 125 (67%)</strong></span>
+ </label>
+ </div>
+ <div class="layer-item" id="itemFootprintS1">
+ <label>
+ <input type="checkbox" id="chkFootprintS1" onchange="toggleLayer('footprintS1')">
+ <span class="legend-line" style="background: #10b981; height: 3px; border-bottom: 2px dashed #059669;"></span>
+ <span>Sentinel-1 SAR Relative Orbit: <strong style="color: #34d399;">Orbit 120 (100%) vs Orbit 128 / 55</strong></span>
+ </label>
+ </div>
+ </div>
+
+ <!-- Reach Inspector -->
+ <div id="secReachesContainer">
+ <div class="section-title">3. SWORD Reaches Inventory</div>
+ <div class="item-list" id="reachesList" style="max-height: 90px;">
+ <!-- Dynamically populated -->
+ </div>
+ </div>
+
+ <!-- Altimetry Points Catalog -->
+ <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+ <span>3b. Altimetry Station Catalog (<span id="altListTotal">55</span>)</span>
+ <div style="display: flex; gap: 3px;">
+ <button id="btnFilterAll" class="active" style="padding: 2px 6px; font-size: 9px;" onclick="filterAltimetryList('ALL')">All</button>
+ <button id="btnFilterSwot" style="padding: 2px 6px; font-size: 9px; color: #00ffff;" onclick="filterAltimetryList('SWOT')">SWOT</button>
+ <button id="btnFilterIcesat" style="padding: 2px 6px; font-size: 9px; color: #fde047;" onclick="filterAltimetryList('ICESAT')">ICESat-2</button>
+ <button id="btnFilterRadar" style="padding: 2px 6px; font-size: 9px; color: #f472b6;" onclick="filterAltimetryList('RADAR')">Radar L2</button>
+ </div>
+ </div>
+ <div class="item-list" id="altimetryList" style="max-height: 160px;">
+ <!-- Dynamically populated -->
+ </div>
+
+ <!-- Altimetry Provenance Inspector -->
+ <div class="section-title">4. Altimetry Provenance & Geodetic Inspector</div>
+ <div id="altInspectorCard" class="info-card" style="font-size: 11.5px; background: #0f172a; border: 1px solid #334155; border-left: 3px solid #38bdf8; line-height: 1.5; padding: 10px;">
+ <div style="color: #94a3b8; font-style: italic;"> Click any altimetry node on the map to inspect WSE time series, geodetic uncertainty (±σ), and official NASA/ESA provenance.</div>
+ </div>
+ </div>
+
+ <!-- TAB 2: CUTLINE DIGITIZER -->
+ <div id="panelCutline" style="display: none; flex-direction: column; gap: 12px;">
+ <div class="info-card" style="border-left: 3px solid #10b981; color: #a7f3d0;">
+ <strong>1:1 Geodetic Digitizer:</strong> Enable drawing mode and click directly on high-resolution satellite imagery to measure distances and create engineering transects.
+ </div>
+
+ <div class="section-title">Transect Drawing Controls</div>
+ <div class="btn-group">
+ <button id="btnDraw" class="success" onclick="toggleDrawing()"> Enable Point Digitizing</button>
+ <button class="danger" onclick="clearPoints()"> Clear All Points</button>
+ <button onclick="undoLastPoint()"> Undo Last Point</button>
+ </div>
+
+ <div class="section-title">Digitized Points List (<span id="pointCount">0</span> points)</div>
+ <div id="pointsList" class="item-list" style="max-height: 100px;"></div>
+
+ <div class="section-title">Canonical WGS84 GeoJSON Output</div>
+ <textarea id="jsonOutput" readonly placeholder="GeoJSON coordinates will appear here..."></textarea>
+ <button onclick="copyJson()" style="width: 100%; justify-content: center;"> Copy GeoJSON to Clipboard</button>
+ </div>
+
+ <!-- TAB 3: SATELLITE IMAGERY & MULTI-SENSOR FUSION INSPECTOR -->
+ <div id="panelSatellite" style="display: none; flex-direction: column; gap: 12px;">
+ <div class="info-card" style="border-left: 3px solid #38bdf8; color: #bae6fd; font-size: 11px; line-height: 1.4;">
+ <strong>Tier-2 Ground Truth Verification:</strong> 1:1 spatial overlay between empirical satellite scenes (Sentinel-2 MSI 10m, Sentinel-1 SAR 10m, Landsat-9 30m) and the Multi-Sensor Fusion water mask directly geo-registered over reservoir boundaries and WGS84 dam cutlines.
+ </div>
+
+ <!-- 0. FOOTPRINTS & PIPELINE AUDIT -->
+ <div class="section-title">0. Sensor Footprints & Harvest Pipeline</div>
+ <div id="satFootprintControls" style="display: flex; flex-direction: column; gap: 4px;">
+ <div class="layer-item" id="itemFootprintS2_sat">
+ <label>
+ <input type="checkbox" id="chkFootprintS2_sat" onchange="toggleFootprintFromSat('footprintS2')">
+ <span class="legend-line" style="background: #38bdf8; height: 3px; border-bottom: 2px dashed #0284c7;"></span>
+ <span>Sentinel-2 MGRS Tile Grid: <strong style="color: #38bdf8;">48PZA (100%) vs 48PYA (61%)</strong></span>
+ </label>
+ </div>
+ <div class="layer-item" id="itemFootprintLandsat_sat">
+ <label>
+ <input type="checkbox" id="chkFootprintLandsat_sat" onchange="toggleFootprintFromSat('footprintLandsat')">
+ <span class="legend-line" style="background: #38bdf8; height: 3px; border-bottom: 2px dashed #0369a1;"></span>
+ <span>Landsat WRS-2 Swath Path: <strong style="color: #38bdf8;">Path 124 (100%) vs Path 125 (67%)</strong></span>
+ </label>
+ </div>
+ <div class="layer-item" id="itemFootprintS1_sat">
+ <label>
+ <input type="checkbox" id="chkFootprintS1_sat" onchange="toggleFootprintFromSat('footprintS1')">
+ <span class="legend-line" style="background: #10b981; height: 3px; border-bottom: 2px dashed #059669;"></span>
+ <span>Sentinel-1 SAR Relative Orbit: <strong style="color: #34d399;">Orbit 120 (100%) vs Orbit 128 / 55</strong></span>
+ </label>
+ </div>
+ </div>
+
+ <!-- Pipeline Description Card -->
+ <div class="info-card" style="font-size: 10px; line-height: 1.45; background: rgba(15, 23, 42, 0.9); border: 1px solid #334155; border-left: 3px solid #38bdf8; padding: 8px 10px;">
+ <div style="font-weight: bold; color: #38bdf8; margin-bottom: 4px;"> DATA HARVESTING & ALGORITHMIC SCREENING PIPELINE (CORE ENGINE STEP 03):</div>
+ <div style="color: #cbd5e1; margin-bottom: 3px;">• <strong>Sentinel-2 (10m):</strong> Tile 48PZA (Master 100%). SCL cloud filtering: if cloud cover &lt; 10%, water is interpolated beneath thin haze; if &ge; 10%, SAR microwave rescue is activated; MNDWI &gt; 0.</div>
+ <div style="color: #cbd5e1; margin-bottom: 3px;">• <strong>Sentinel-1 SAR (10m):</strong> Descending Orbit 120 (zero terrain shadow over reservoir). Two-tier thresholding (-15.5 dB core water, -13.0 dB edge) + terrain slope filter &lt; 15°.</div>
+ <div style="color: #cbd5e1;">• <strong>Landsat-8/9 (30m):</strong> Master Path 124 Row 50 (100%), QA_PIXEL cloud filter, AWEI index. Designated <strong>Tier-2</strong> to maintain hydrodynamic balance stability.</div>
+ </div>
+
+ <!-- Event Selector -->
+ <div class="section-title">1. Multi-Temporal Satellite Observations (<span id="satDamTitle">NUOZHADU</span>)</div>
+ <div class="btn-group" id="satEventBtns" style="width: 100%;">
+ <!-- Dynamically populated per dam -->
+ </div>
+
+ <!-- Stats Grid -->
+ <div class="section-title">2. Surface Water Area Benchmarks</div>
+ <div class="stats-grid" id="satStatsGrid">
+ <!-- Dynamically populated -->
+ </div>
+
+ <!-- Layer Controls with Opacity Sliders -->
+ <div class="section-title" style="display: flex; justify-content: space-between;">
+ <span>3. Sensor Imagery & Opacity Sliders</span>
+ <span style="font-size: 9px; color: #38bdf8; cursor: pointer;" onclick="resetSatOpacities()">↺ Reset</span>
+ </div>
+ <div id="satLayerControls" style="display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto;">
+ <!-- Dynamically populated -->
+ </div>
+
+ <!-- Forensic Explanation Card -->
+ <div class="section-title">4. CLIN Causal Reflection & Physical Validation</div>
+ <div id="satExplanationCard" class="info-card" style="font-size: 10.5px; line-height: 1.45; color: #cbd5e1; border-left: 3px solid #f59e0b;">
+ <!-- Dynamically populated -->
+ </div>
+ </div>
+
+ <!-- BASEMAP SELECTOR -->
+ <div style="margin-top: auto; border-top: 1px solid #334155; padding-top: 10px;">
+ <div class="section-title" style="margin-bottom: 6px;">Geodetic Basemaps</div>
+ <div class="btn-group">
+ <button id="btnEsri" class="active" onclick="setBasemap('esri')"> ESRI 0.5m</button>
+ <button id="btnGoogle" onclick="setBasemap('google')"> Google Sat</button>
+ 
+ </div>
+ <div class="coord-display" id="cursorCoord" style="margin-top: 8px;">Lon: --- | Lat: ---</div>
+ </div>
+ </div>
+
+ <div id="map" class="crosshair">
+ <div id="screenCoords" class="mouse-coords">WGS84: Lon: --- | Lat: ---</div>
+ </div>
+
+ <script>
+ // Initialize Leaflet map (default focused on Ialy Falls)
+ const map = L.map('map', {
+ center: [14.30, 107.90],
+ zoom: 12,
+ maxZoom: 19
+ });
+
+ // Basemap layers
+ const basemaps = {
+ esri: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+ attribution: 'Tiles &copy; Esri &mdash; High-Res Satellite',
+ maxZoom: 19
+ }),
+ google: L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+ attribution: 'Google Satellite',
+ maxZoom: 20
+ }),
+ white: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+ attribution: '&copy; CartoDB Light (Minimalist Canvas)',
+ maxZoom: 19
+ })
+ };
+
+ let currentBasemap = basemaps.esri;
+ currentBasemap.addTo(map);
+
+ function setBasemap(type) {
+ map.removeLayer(currentBasemap);
+ currentBasemap = basemaps[type];
+ currentBasemap.addTo(map);
+
+ document.getElementById('btnEsri').classList.toggle('active', type === 'esri');
+ document.getElementById('btnGoogle').classList.toggle('active', type === 'google');
+ // CartoDB Light removed
+ }
+
+ // Feature Groups for spatial layers
+ const layers = {
+ cutlines: L.featureGroup().addTo(map),
+ lakePolyNPL: L.featureGroup(),
+ lakePoly: L.featureGroup(),
+ nasaLakeSP: L.featureGroup(),
+ reachesWl: L.featureGroup().addTo(map),
+ reachesEx: L.featureGroup().addTo(map),
+ altAccepted: L.featureGroup().addTo(map),
+ altRejected: L.featureGroup().addTo(map),
+ footprintS2: L.featureGroup(),
+ footprintLandsat: L.featureGroup(),
+ footprintS1: L.featureGroup()
+ };
+
+ let currentDam = 'yali_falls';
+ let altMarkersRegistry = {};
+
+ // Mouse cursor tracking
+ map.on('mousemove', function(e) {
+ const lat = e.latlng.lat.toFixed(6);
+ const lng = e.latlng.lng.toFixed(6);
+ document.getElementById('cursorCoord').innerText = `Lon: ${lng}°E | Lat: ${lat}°N`;
+ document.getElementById('screenCoords').innerText = `WGS84: ${lng}°E, ${lat}°N`;
+ });
+
+ // Tab switcher
+ function switchTab(tabId) {
+ document.getElementById('panelTransparency').style.display = (tabId === 'transparency') ? 'flex' : 'none';
+ document.getElementById('panelSatellite').style.display = (tabId === 'satellite') ? 'flex' : 'none';
+ document.getElementById('panelCutline').style.display = (tabId === 'cutline') ? 'flex' : 'none';
+ document.getElementById('tabTransparency').classList.toggle('active', tabId === 'transparency');
+ document.getElementById('tabSatellite').classList.toggle('active', tabId === 'satellite');
+ document.getElementById('tabCutline').classList.toggle('active', tabId === 'cutline');
+
+   if (tabId === 'satellite') {
+    // Temporarily hide vector polygon layers so satellite scenes are completely clear
+    ['lakePolyNPL', 'lakePoly', 'nasaLakeSP'].forEach(k => {
+      if (map.hasLayer(layers[k])) map.removeLayer(layers[k]);
+    });
+    const damSat = window.SATELLITE_OVERLAY_DATA ? window.SATELLITE_OVERLAY_DATA[currentDam] : null;
+    if (damSat && damSat.leaflet_bounds) {
+      map.fitBounds(damSat.leaflet_bounds, { padding: [30, 30] });
+    }
+    if (typeof renderSatelliteEvents === 'function') {
+      renderSatelliteEvents(currentDam);
+      const defaultEvt = damSat ? Object.keys(damSat.events)[0] : '2022-02-08';
+      selectSatelliteEvent(defaultEvt);
+    }
+  } else if (tabId === 'transparency') {
+    // Restore checked polygon layers
+    ['lakePolyNPL', 'lakePoly', 'nasaLakeSP'].forEach(k => {
+      const chk = document.getElementById('chk' + k.charAt(0).toUpperCase() + k.slice(1));
+      if (chk && chk.checked && !map.hasLayer(layers[k])) {
+        map.addLayer(layers[k]);
+      }
+    });
+  }
+ }
+
+ // Toggle layer visibility
+ function toggleLayer(layerKey) {
+ const chk = document.getElementById('chk' + layerKey.charAt(0).toUpperCase() + layerKey.slice(1));
+ const satChk = document.getElementById('chk' + layerKey.charAt(0).toUpperCase() + layerKey.slice(1) + '_sat');
+ const isChecked = chk ? chk.checked : (satChk ? satChk.checked : false);
+ if (satChk && chk) satChk.checked = chk.checked;
+ if (isChecked) {
+ map.addLayer(layers[layerKey]);
+ } else {
+ map.removeLayer(layers[layerKey]);
+ }
+ }
+
+ // Toggle sensor swath footprints directly from Tab 2
+ function toggleFootprintFromSat(layerKey) {
+ const satChk = document.getElementById('chk' + layerKey.charAt(0).toUpperCase() + layerKey.slice(1) + '_sat');
+ const mainChk = document.getElementById('chk' + layerKey.charAt(0).toUpperCase() + layerKey.slice(1));
+ const isChecked = satChk ? satChk.checked : false;
+ if (mainChk) mainChk.checked = isChecked;
+ if (isChecked) {
+ map.addLayer(layers[layerKey]);
+ } else {
+ map.removeLayer(layers[layerKey]);
+ }
+ }
+
+ // Group altimetry passes by spatial station coordinate (Spatial Station Nodes)
+ function groupAltimetryByLocation(geojsonData) {
+ if (!geojsonData || !geojsonData.features) return [];
+ const groups = {};
+ geojsonData.features.forEach(feat => {
+ const c = feat.geometry.coordinates; // [lon, lat]
+ const p = feat.properties;
+ // Grouping key rounded to 5 decimal places (~1.1m spatial tolerance)
+ const key = `${c[1].toFixed(5)}_${c[0].toFixed(5)}`;
+ if (!groups[key]) {
+ groups[key] = {
+ lat: c[1],
+ lon: c[0],
+ sensor: p.sensor,
+ sensor_type: p.sensor_type,
+ status: p.status,
+ status_vn: p.status_vn,
+ product_name: p.product_name,
+ archive_daac: p.archive_daac,
+ doi: p.doi,
+ doi_url: p.doi_url,
+ reason: p.reason,
+ color: p.color,
+ orbit_track_info: p.orbit_track_info,
+ photons: p.photons,
+ dem_elevation_m: p.dem_elevation_m,
+ items: []
+ };
+ }
+ groups[key].items.push(p);
+ });
+
+ return Object.values(groups).map(g => {
+ // Sort passes chronologically
+ g.items.sort((a, b) => (a.date > b.date ? 1 : -1));
+ const elevs = g.items.map(it => parseFloat(it.elevation_m));
+ g.minElev = Math.min(...elevs);
+ g.maxElev = Math.max(...elevs);
+ g.meanElev = elevs.reduce((a, b) => a + b, 0) / elevs.length;
+ g.count = g.items.length;
+ return g;
+ });
+ }
+
+ // Render mini SVG sparkline timeseries for altimetry station
+ function renderSparklineSVG(items, width = 290, height = 55) {
+ if (!items || items.length <= 1) return '';
+ const elevs = items.map(it => parseFloat(it.elevation_m));
+ const min = Math.min(...elevs);
+ const max = Math.max(...elevs);
+ const span = (max - min) || 1.0;
+ const padX = 14;
+ const padY = 8;
+ const w = width - 2 * padX;
+ const h = height - 2 * padY;
+
+ const pts = items.map((it, idx) => {
+ const x = padX + (idx / (items.length - 1)) * w;
+ const y = height - padY - ((parseFloat(it.elevation_m) - min) / span) * h;
+ return `${x.toFixed(1)},${y.toFixed(1)}`;
+ });
+
+ const pointsStr = pts.join(' ');
+ return `
+ <div style="background: #090d16; border: 1px solid #1e293b; border-radius: 4px; padding: 6px; margin: 8px 0;">
+ <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; margin-bottom: 4px;">
+ <span> Water Level Time Series ${items[0].date} &rarr; ${items[items.length-1].date}</span>
+ <span style="color: #38bdf8; font-weight: bold;">${items.length} passes</span>
+ </div>
+ <svg width="${width}" height="${height}" style="overflow: visible; display: block; margin: 0 auto;">
+ <polyline fill="none" stroke="#00ffcc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${pointsStr}" />
+ ${pts.map((pt, idx) => {
+ const [x, y] = pt.split(',');
+ const it = items[idx];
+ return `<circle cx="${x}" cy="${y}" r="2.8" fill="#38bdf8" stroke="#0f172a" stroke-width="1"><title>${it.date}: ${it.elevation_m}m</title></circle>`;
+ }).join('')}
+ </svg>
+ <div style="display: flex; justify-content: space-between; font-size: 9.5px; color: #64748b; margin-top: 3px;">
+ <span>Min: ${min.toFixed(2)}m</span>
+ <span>Amplitude Δ: ${(max - min).toFixed(2)}m</span>
+ <span>Max: ${max.toFixed(2)}m</span>
+ </div>
+ </div>
+ `;
+ }
+
+ function renderDamSelector() {
+ const bar = document.getElementById('damSelectorBar');
+ if (!bar || !window.SURVEYOR_DATA) return;
+ bar.innerHTML = '';
+ const damIds = Object.keys(window.SURVEYOR_DATA);
+ damIds.forEach(id => {
+ const d = window.SURVEYOR_DATA[id];
+ const btn = document.createElement('button');
+ btn.dataset.damId = id;
+ btn.style.flex = '1';
+ btn.style.justifyContent = 'center';
+ btn.innerText = ` ${d.dam_name ? d.dam_name.toUpperCase() : id.toUpperCase()}`;
+ btn.onclick = () => switchDam(id);
+ if (id === currentDam) btn.classList.add('active');
+ bar.appendChild(btn);
+ });
+ }
+
+ // Load dataset for selected reservoir
+ function renderDamData(damId) {
+ currentDam = damId;
+ const data = window.SURVEYOR_DATA[damId];
+ if (!data) return;
+
+ // Clear previous layers
+ Object.values(layers).forEach(layer => layer.clearLayers());
+ altMarkersRegistry = {};
+
+ document.getElementById('currentDamBadge').innerText = (data.dam_name || damId).toUpperCase();
+ const bar = document.getElementById('damSelectorBar');
+ if (bar) {
+ Array.from(bar.children).forEach(btn => {
+ btn.classList.toggle('active', btn.dataset.damId === damId);
+ });
+ }
+
+ // Update telemetry statistics
+ const stats = data.stats;
+ const isLakeSP = data.swot_product_type === 'LAKESP' || !data.reaches_whitelisted;
+ 
+ const statReachesLabel = document.getElementById('statReachesLabel');
+ const statReachesWl = document.getElementById('statReachesWl');
+ if (isLakeSP) {
+ if (statReachesLabel) statReachesLabel.innerText = 'NASA SWOT LakeSP ID';
+ if (statReachesWl) statReachesWl.innerText = '4420131133';
+ } else {
+ if (statReachesLabel) statReachesLabel.innerText = 'Active SWORD Reaches';
+ if (statReachesWl) statReachesWl.innerText = `${stats.reaches_whitelisted} / ${stats.reaches_total}`;
+ }
+
+ const itemReachesWl = document.getElementById('itemReachesWl');
+ const itemReachesEx = document.getElementById('itemReachesEx');
+ const secReachesContainer = document.getElementById('secReachesContainer');
+ const itemNasaLakeSP = document.getElementById('itemNasaLakeSP');
+
+ if (itemReachesWl) itemReachesWl.style.display = isLakeSP ? 'none' : 'flex';
+ if (itemReachesEx) itemReachesEx.style.display = isLakeSP ? 'none' : 'flex';
+ if (secReachesContainer) secReachesContainer.style.display = isLakeSP ? 'none' : 'block';
+ if (itemNasaLakeSP) itemNasaLakeSP.style.display = isLakeSP ? 'flex' : 'none';
+
+ document.getElementById('statAltAccepted').innerText = `${stats.altimetry_accepted_total}`;
+ if (document.getElementById('cntReachesWl')) document.getElementById('cntReachesWl').innerText = stats.reaches_whitelisted || 0;
+ if (document.getElementById('cntReachesEx')) document.getElementById('cntReachesEx').innerText = stats.reaches_excluded || 0;
+ document.getElementById('cntAltAcc').innerText = stats.altimetry_accepted_total;
+ document.getElementById('cntAltRej').innerText = stats.altimetry_rejected_total;
+
+ // Update Step 03 Remote Sensing Harvest Card
+ const step03Card = document.getElementById('step03HarvestCard');
+ if (step03Card) {
+ if (stats.step03_total_scenes) {
+ step03Card.style.display = 'block';
+ const badge = document.getElementById('step03TotalScenesBadge');
+ if (badge) badge.innerText = `${stats.step03_total_scenes} SCENES (26 YEARS)`;
+ const det = document.getElementById('step03DetailsText');
+ if (det) {
+ det.innerHTML = `
+ <div> Observation Timeline: <strong style="color: #e2e8f0;">${stats.step03_date_start} &rarr; ${stats.step03_date_end}</strong></div>
+ <div style="margin-top: 2px;"> Sensor: <span style="color: #38bdf8;">S2 (10m): ${stats.step03_s2_count}</span> | <span style="color: #f59e0b;">S1 (SAR): ${stats.step03_s1_count}</span> | <span style="color: #0284c7;">Landsat: ${stats.step03_landsat_count}</span></div>
+ <div style="margin-top: 2px;"> Raw Water Area Range: <strong style="color: #38bdf8;">${stats.step03_min_area_km2}</strong> &rarr; <strong style="color: #38bdf8;">${stats.step03_max_area_km2} km²</strong></div>
+ `;
+ }
+ } else {
+ step03Card.style.display = 'none';
+ }
+ }
+
+ // 1. Engineering Dam Transects & Cutlines
+ if (data.dam_crest_cut_line) {
+ const crestPts = data.dam_crest_cut_line.map(p => [p[1], p[0]]);
+ const crestLine = L.polyline(crestPts, { color: '#ff0033', weight: 5, opacity: 0.95 });
+ crestLine.bindPopup(`
+ <div class="popup-title"> Dam Crest Cutline (${data.dam_name})</div>
+ <div class="popup-row"><span class="popup-label">Coordinates P1:</span> <span class="popup-val">[${data.dam_crest_cut_line[0][0]}, ${data.dam_crest_cut_line[0][1]}]</span></div>
+ <div class="popup-row"><span class="popup-label">Coordinates P2:</span> <span class="popup-val">[${data.dam_crest_cut_line[1][0]}, ${data.dam_crest_cut_line[1][1]}]</span></div>
+ <div class="popup-reason">1:1 physical boundary cutline separating the reservoir from the downstream tailwater channel.</div>
+ `);
+ layers.cutlines.addLayer(crestLine);
+ }
+
+ if (data.upstream_boundary_cut_line) {
+ const upPts = data.upstream_boundary_cut_line.map(p => [p[1], p[0]]);
+ const upLine = L.polyline(upPts, { color: '#ff9900', weight: 5, opacity: 0.95, dashArray: '4, 4' });
+ const upLabel = damId === 'yali_falls' ? ' Pleikrong Dam Tailwater Transect (Po Ko River)' : ' Upstream Cutline (Dachaoshan Dam Spillway)';
+ const upDesc = damId === 'yali_falls' ? 'Transect across Pleikrong dam tailwater, delimiting the upstream boundary of Ialy reservoir and the base of the upper cascade dam.' : 'Transect across Dachaoshan spillway, preventing upstream reservoir backwater from leaking into Nuozhadu.';
+ upLine.bindPopup(`
+ <div class="popup-title">${upLabel}</div>
+ <div class="popup-row"><span class="popup-label">Coordinates P1:</span> <span class="popup-val">[${data.upstream_boundary_cut_line[0][0]}, ${data.upstream_boundary_cut_line[0][1]}]</span></div>
+ <div class="popup-row"><span class="popup-label">Coordinates P2:</span> <span class="popup-val">[${data.upstream_boundary_cut_line[1][0]}, ${data.upstream_boundary_cut_line[1][1]}]</span></div>
+ <div class="popup-reason">${upDesc}</div>
+ `);
+ layers.cutlines.addLayer(upLine);
+ }
+
+ if (data.dakbla_boundary_cut_line) {
+ const dbPts = data.dakbla_boundary_cut_line.map(p => [p[1], p[0]]);
+ const dbLine = L.polyline(dbPts, { color: '#ec4899', weight: 5, opacity: 0.95, dashArray: '4, 4' });
+ dbLine.bindPopup(`
+ <div class="popup-title"> Dak Bla River Boundary Transect</div>
+ <div class="popup-row"><span class="popup-label">Coordinates P1:</span> <span class="popup-val">[${data.dakbla_boundary_cut_line[0][0]}, ${data.dakbla_boundary_cut_line[0][1]}]</span></div>
+ <div class="popup-row"><span class="popup-label">Coordinates P2:</span> <span class="popup-val">[${data.dakbla_boundary_cut_line[1][0]}, ${data.dakbla_boundary_cut_line[1][1]}]</span></div>
+ <div class="popup-reason">Transect at 515m design backwater boundary on Dak Bla River upstream of Kon Tum city.</div>
+ `);
+ layers.cutlines.addLayer(dbLine);
+ }
+
+ // 2a. Full Reservoir Envelope at FSL (64.5 km²) for Hypsometric HAV Curve
+ if (data.lake_polygon) {
+ const lakeGeoNPL = L.geoJSON(data.lake_polygon, {
+ style: {
+ color: '#f59e0b',
+ weight: 2.5,
+ fillColor: '#d97706',
+ fillOpacity: 0.20,
+ dashArray: '4, 4'
+ }
+ });
+ lakeGeoNPL.bindPopup(`
+ <div class="popup-title"> Full Reservoir Envelope at FSL (64.5 km²)</div>
+ <div class="popup-row"><span class="popup-label">Reservoir:</span> <span class="popup-val">${data.dam_name}</span></div>
+ <div class="popup-row"><span class="popup-label">Water Level:</span> <span class="popup-val">515.00 masl (MNDBT)</span></div>
+ <div class="popup-row"><span class="popup-label">Design Surface Area:</span> <span class="popup-val" style="color: #fbbf24; font-weight: bold;">64.50 km²</span></div>
+ <div class="popup-reason"> <strong>Purpose:</strong> Full reservoir perimeter at Full Supply Level (515m MSL) (comprising main reservoir basin 54 km² + Po Ko and Dak Bla flood extent 10.5 km²), utilized for H-A-V rating curves and multi-sensor water surface extraction (Sentinel-1 SAR / Sentinel-2 MSI).</div>
+ `);
+ layers.lakePolyNPL.addLayer(lakeGeoNPL);
+ }
+
+ // 2b. Deep Calm Pool Altimetry Mask - Step 02 Satellite Geodesy
+ const staticPoly = data.lake_polygon_altimetry || (damId !== 'yali_falls' ? data.lake_polygon : null);
+ if (staticPoly) {
+ const lakeGeoStatic = L.geoJSON(staticPoly, {
+ style: {
+ color: '#38bdf8',
+ weight: 2.0,
+ fillColor: '#0284c7',
+ fillOpacity: 0.35
+ }
+ });
+ lakeGeoStatic.bindPopup(`
+ <div class="popup-title"> Deep Calm Pool Altimetry Mask</div>
+ <div class="popup-row"><span class="popup-label">Reservoir:</span> <span class="popup-val">${data.dam_name}</span></div>
+ <div class="popup-row"><span class="popup-label">Spatial Extent:</span> <span class="popup-val">Lon ≤ 107.9204°E (Deep Calm Pool Zone)</span></div>
+ <div class="popup-row"><span class="popup-label">Calm Basin Area:</span> <span class="popup-val" style="color: #38bdf8; font-weight: bold;">~54.0 km²</span></div>
+ <div class="popup-reason"> <strong>Purpose:</strong> Deep calm water pool ensuring 100% of SWOT KaRIn and ICESat-2 altimetry passes reflect true hydrostatic water levels, eliminating shoreline noise and backwater turbulence.</div>
+ `);
+ layers.lakePoly.addLayer(lakeGeoStatic);
+ }
+
+ // 2c. Official NASA SWOT LakeSP Polygon (Lake ID: 4420131133)
+ if (data.nasa_lakesp_polygon) {
+ const nasaLakeGeo = L.geoJSON(data.nasa_lakesp_polygon, {
+ style: {
+ color: '#00ffff',
+ weight: 3.5,
+ opacity: 1.0,
+ fillColor: '#06b6d4',
+ fillOpacity: 0.22,
+ dashArray: '3, 5'
+ }
+ });
+ const lp = (data.nasa_lakesp_polygon.features && data.nasa_lakesp_polygon.features[0]) ? data.nasa_lakesp_polygon.features[0].properties : {};
+ nasaLakeGeo.bindPopup(`
+ <div class="popup-title"> NASA SWOT LakeSP Polygon (Lake ID: ${lp.lake_id || '4420131133'})</div>
+ <div class="popup-row"><span class="popup-label">Reservoir:</span> <span class="popup-val">${data.dam_name}</span></div>
+ <div class="popup-row"><span class="popup-label">Observation Pass:</span> <span class="popup-val">${lp.date || '2023-11-01'} (Flood Peak 515.32m)</span></div>
+ <div class="popup-row"><span class="popup-label">Water Surface Elevation (WSE):</span> <span class="popup-val" style="color: #38bdf8; font-weight: bold;">${lp.wse_m || 515.32} masl</span></div>
+ <div class="popup-row"><span class="popup-label">NASA Measured Area:</span> <span class="popup-val" style="color: #00ffff; font-weight: bold;">${(lp.area_total_km2 || 50.18).toFixed(2)} km²</span></div>
+ <div class="popup-reason"> <strong>NASA Official Mask:</strong> Official water mask extracted by NASA SWOT KaRIn at 515.32m WSE. The polygon bounds at Lon ≤ 107.922°E, isolating deep calm water from the eastern shallow tributaries.</div>
+ `);
+ layers.nasaLakeSP.addLayer(nasaLakeGeo);
+ }
+
+ // 3. Reaches Whitelisted
+ if (data.reaches_whitelisted) {
+ const rWl = L.geoJSON(data.reaches_whitelisted, {
+ style: { color: '#00ffff', weight: 4, opacity: 0.95 },
+ onEachFeature: function(feat, layer) {
+ const p = feat.properties;
+ layer.bindPopup(`
+ <div class="popup-title"> SWORD River Reach: ${p.reach_id}</div>
+ <div class="popup-row"><span class="popup-label">Status:</span> <span class="tag-wl">${p.status === 'WHITELISTED' ? 'INCLUDED' : 'EXCLUDED'}</span></div>
+ <div class="popup-row"><span class="popup-label">River:</span> <span class="popup-val">${p.river_name}</span></div>
+ <div class="popup-row"><span class="popup-label">Length:</span> <span class="popup-val">${Math.round(p.length_m)} m</span></div>
+ <div class="popup-reason"> <strong>Selection Rationale:</strong> ${p.reason}</div>
+ `);
+ }
+ });
+ layers.reachesWl.addLayer(rWl);
+ }
+
+ // 4. Reaches Excluded
+ if (data.reaches_excluded) {
+ const rEx = L.geoJSON(data.reaches_excluded, {
+ style: { color: '#f87171', weight: 3, opacity: 0.85, dashArray: '6, 6' },
+ onEachFeature: function(feat, layer) {
+ const p = feat.properties;
+ layer.bindPopup(`
+ <div class="popup-title"> Excluded SWORD River Reach: ${p.reach_id}</div>
+ <div class="popup-row"><span class="popup-label">Status:</span> <span class="tag-ex">${p.status === 'WHITELISTED' ? 'INCLUDED' : 'EXCLUDED'}</span></div>
+ <div class="popup-row"><span class="popup-label">River:</span> <span class="popup-val">${p.river_name}</span></div>
+ <div class="popup-row"><span class="popup-label">Length:</span> <span class="popup-val">${Math.round(p.length_m)} m</span></div>
+ <div class="popup-reason"> <strong>Exclusion Rationale:</strong> ${p.reason}</div>
+ `);
+ }
+ });
+ layers.reachesEx.addLayer(rEx);
+ }
+
+ // 5. Validated Altimetry Nodes (Grouped by spatial stations)
+ if (data.altimetry_accepted) {
+ const acceptedGroups = groupAltimetryByLocation(data.altimetry_accepted);
+ document.getElementById('cntAltAcc').innerText = `${stats.altimetry_accepted_total} passes (${acceptedGroups.length} stations)`;
+
+ acceptedGroups.forEach(g => {
+ const sUpper = (g.sensor || '').toUpperCase();
+ const isSwot = g.sensor_type === 'SWOT' || sUpper.includes('SWOT');
+ const isRadar = sUpper.includes('SENTINEL') || sUpper.includes('SRAL') || sUpper.includes('CRYOSAT') || sUpper.includes('SIRAL') || sUpper.includes('SARAL') || sUpper.includes('ALTIKA') || sUpper.includes('RADAR');
+ const isMulti = g.count > 1;
+ let markerColor = '#ffea00';
+ if (isSwot) markerColor = '#00ffff';
+ else if (isRadar) markerColor = '#ec4899';
+ const markerRadius = isMulti ? 11 : 9;
+ const stationKey = `${g.lat.toFixed(5)}_${g.lon.toFixed(5)}`;
+
+ // Spatial station aura indicator
+ const aura = L.circleMarker([g.lat, g.lon], {
+ radius: markerRadius + 6,
+ fillColor: markerColor,
+ color: markerColor,
+ weight: 1.5,
+ opacity: 0.6,
+ fillOpacity: 0.22,
+ interactive: false
+ });
+ layers.altAccepted.addLayer(aura);
+
+ // High-contrast core marker
+ const marker = L.circleMarker([g.lat, g.lon], {
+ radius: markerRadius,
+ fillColor: markerColor,
+ color: '#ffffff',
+ weight: 2.5,
+ opacity: 1,
+ fillOpacity: 0.95
+ });
+
+ // Register in map registry for sidebar table click interaction
+ altMarkersRegistry[stationKey] = marker;
+
+ // Visual tooltip
+ if (isMulti) {
+ marker.bindTooltip(
+ `<b> ${g.sensor} (${g.count} repeat passes)</b><br>` +
+ `WSE Range: <b>${g.minElev.toFixed(2)}m – ${g.maxElev.toFixed(2)}m</b> (Δ=${(g.maxElev - g.minElev).toFixed(2)}m)<br>` +
+ `Coordinates: <code>${g.lat.toFixed(5)}°N, ${g.lon.toFixed(5)}°E</code><br>` +
+ `<small style="color: #38bdf8;"> Click to inspect ${g.count} passes</small>`,
+ { sticky: true, opacity: 0.95 }
+ );
+ } else {
+ const p = g.items[0];
+ marker.bindTooltip(
+ `<b>${p.sensor}</b> (${p.date})<br>` +
+ `WSE: <b>${p.elevation_m} m</b> (±${p.uncertainty_m || '0.05'}m)<br>` +
+ `Coordinates: <code>${g.lat.toFixed(5)}°N, ${g.lon.toFixed(5)}°E</code>`,
+ { sticky: true, opacity: 0.95 }
+ );
+ }
+
+ // Detailed popup with sparkline and pass history
+ const sparklineHtml = renderSparklineSVG(g.items, 280, 50);
+ const tableRows = g.items.map(it => `
+ <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 10px;">
+ <td style="padding: 2px 4px; color: #94a3b8;">${it.date}</td>
+ <td style="padding: 2px 4px; color: #4ade80; font-weight: bold; text-align: right;">${parseFloat(it.elevation_m).toFixed(2)} m</td>
+ <td style="padding: 2px 4px; color: #cbd5e1; text-align: right;">±${it.uncertainty_m || '0.05'}m</td>
+ </tr>
+ `).join('');
+
+ const p0 = g.items[0];
+ marker.bindPopup(`
+ <div class="popup-title"> Altimetry Station: ${g.sensor} ${isMulti ? `(${g.count} passes)` : ''}</div>
+ <div class="popup-row"><span class="popup-label">WGS84 Coordinates:</span> <span class="popup-val" style="color: #38bdf8; font-family: monospace; font-weight: bold;">${g.lat.toFixed(5)}°N, ${g.lon.toFixed(5)}°E</span></div>
+ ${isMulti ? `
+ <div class="popup-row"><span class="popup-label">WSE Range:</span> <span class="popup-val" style="color: #4ade80; font-weight: bold;">${g.minElev.toFixed(2)}m – ${g.maxElev.toFixed(2)}m</span></div>
+ <div class="popup-row"><span class="popup-label">Water Level Amplitude:</span> <span class="popup-val">Δ = ${(g.maxElev - g.minElev).toFixed(2)} m (Mean: ${g.meanElev.toFixed(2)}m)</span></div>
+ <div class="popup-row"><span class="popup-label">Observation Record:</span> <span class="popup-val">${g.items[0].date} &rarr; ${g.items[g.items.length-1].date}</span></div>
+ ` : `
+ <div class="popup-row"><span class="popup-label">Pass Date:</span> <span class="popup-val">${p0.date}</span></div>
+ <div class="popup-row"><span class="popup-label">Elevation WSE:</span> <span class="popup-val" style="color: #4ade80; font-size: 13px; font-weight: bold;">${p0.elevation_m} m</span></div>
+ <div class="popup-row"><span class="popup-label">Uncertainty σ:</span> <span class="popup-val">±${p0.uncertainty_m} m</span></div>
+ `}
+ <div class="popup-row"><span class="popup-label">Status:</span> <span class="tag-wl">${g.status_vn}</span></div>
+ ${sparklineHtml}
+ ${isMulti ? `
+ <div style="margin-top: 6px; font-size: 11px; font-weight: bold; color: #94a3b8;"> Observation Pass History (${g.count} passes at this station):</div>
+ <div style="max-height: 110px; overflow-y: auto; background: #0b1120; border: 1px solid #1e293b; border-radius: 4px; margin-top: 3px;">
+ <table style="width: 100%; border-collapse: collapse;">
+ <thead style="background: #1e293b; color: #94a3b8; font-size: 9.5px; position: sticky; top: 0;">
+ <tr><th style="padding: 2px 4px; text-align: left;">Date</th><th style="padding: 2px 4px; text-align: right;">WSE</th><th style="padding: 2px 4px; text-align: right;">σ</th></tr>
+ </thead>
+ <tbody>${tableRows}</tbody>
+ </table>
+ </div>
+ ` : ''}
+ <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.2); font-size: 11px;">
+ <div style="color: #94a3b8; font-weight: bold; margin-bottom: 2px;"> provenance reference NASA:</div>
+ <div>• <strong>Data Product:</strong> ${g.product_name}</div>
+ <div>• <strong>Archive / DAAC:</strong> ${g.archive_daac}</div>
+ <div>• <strong>Product DOI:</strong> <a href="${g.doi_url}" target="_blank" style="color: #38bdf8; text-decoration: underline;">${g.doi}</a></div>
+ </div>
+ <div class="popup-reason" style="margin-top: 6px;"> <strong>Validation Evidence:</strong> ${g.reason}</div>
+ <button onclick="copyToClipboard('${g.lat}, ${g.lon}')" style="margin-top: 6px; width: 100%; font-size: 11px; padding: 3px 6px; justify-content: center;"> copy coordinates (${g.lat}, ${g.lon})</button>
+ `);
+
+ marker.on('click', function() {
+ showAltimetryGroupInspector(g);
+ });
+
+ layers.altAccepted.addLayer(marker);
+ });
+ }
+
+ // 6. Flagged Altimetry Nodes (Grouped by spatial stations)
+ if (data.altimetry_rejected) {
+ const rejectedGroups = groupAltimetryByLocation(data.altimetry_rejected);
+ document.getElementById('cntAltRej').innerText = `${stats.altimetry_rejected_total} passes (${rejectedGroups.length} stations)`;
+
+ rejectedGroups.forEach(g => {
+ const isMulti = g.count > 1;
+ const marker = L.circleMarker([g.lat, g.lon], {
+ radius: isMulti ? 6 : 4,
+ fillColor: g.color || '#ff4444',
+ color: isMulti ? '#ffffff' : '#000000',
+ weight: isMulti ? 1.5 : 1,
+ opacity: 0.9,
+ fillOpacity: 0.8
+ });
+
+ if (isMulti) {
+ marker.bindTooltip(
+ `<b> ${g.sensor} (${g.count} flagged passes)</b><br>` +
+ `WSE Range: <b>${g.minElev.toFixed(2)}m – ${g.maxElev.toFixed(2)}m</b><br>` +
+ `Coordinates: <code>${g.lat.toFixed(5)}°N, ${g.lon.toFixed(5)}°E</code>`,
+ { sticky: true, opacity: 0.95 }
+ );
+ } else {
+ const p = g.items[0];
+ marker.bindTooltip(
+ `<b>${p.sensor}</b> (${p.date})<br>` +
+ `WSE: <b>${p.elevation_m} m</b><br>` +
+ `Coordinates: <code>${p.lat.toFixed(5)}°N, ${p.lon.toFixed(5)}°E</code>`,
+ { sticky: true, opacity: 0.95 }
+ );
+ }
+
+ const sparklineHtml = renderSparklineSVG(g.items, 280, 50);
+ const tableRows = g.items.map(it => `
+ <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 10px;">
+ <td style="padding: 2px 4px; color: #94a3b8;">${it.date}</td>
+ <td style="padding: 2px 4px; color: #f87171; font-weight: bold; text-align: right;">${parseFloat(it.elevation_m).toFixed(2)} m</td>
+ <td style="padding: 2px 4px; color: #cbd5e1; text-align: right;">±${it.uncertainty_m || '0.05'}m</td>
+ </tr>
+ `).join('');
+
+ const p0 = g.items[0];
+ marker.bindPopup(`
+ <div class="popup-title"> Flagged Altimetry Node: ${g.sensor} ${isMulti ? `(${g.count} passes)` : ''}</div>
+ <div class="popup-row"><span class="popup-label">WGS84 Coordinates:</span> <span class="popup-val" style="color: #f87171; font-family: monospace; font-weight: bold;">${g.lat.toFixed(5)}°N, ${g.lon.toFixed(5)}°E</span></div>
+ ${isMulti ? `
+ <div class="popup-row"><span class="popup-label">WSE Range:</span> <span class="popup-val" style="color: #f87171; font-weight: bold;">${g.minElev.toFixed(2)}m – ${g.maxElev.toFixed(2)}m</span></div>
+ <div class="popup-row"><span class="popup-label">Water Level Amplitude:</span> <span class="popup-val">Δ = ${(g.maxElev - g.minElev).toFixed(2)} m</span></div>
+ ` : `
+ <div class="popup-row"><span class="popup-label">Pass Date:</span> <span class="popup-val">${p0.date}</span></div>
+ <div class="popup-row"><span class="popup-label">Elevation WSE:</span> <span class="popup-val" style="color: #f87171;">${p0.elevation_m} m</span></div>
+ `}
+ <div class="popup-row"><span class="popup-label">Status:</span> <span class="tag-ex">${g.status_vn}</span></div>
+ ${sparklineHtml}
+ ${isMulti ? `
+ <div style="margin-top: 6px; font-size: 11px; font-weight: bold; color: #94a3b8;"> Details ${g.count} flagged passes:</div>
+ <div style="max-height: 110px; overflow-y: auto; background: #0b1120; border: 1px solid #1e293b; border-radius: 4px; margin-top: 3px;">
+ <table style="width: 100%; border-collapse: collapse;">
+ <thead style="background: #1e293b; color: #94a3b8; font-size: 9.5px; position: sticky; top: 0;">
+ <tr><th style="padding: 2px 4px; text-align: left;">Date</th><th style="padding: 2px 4px; text-align: right;">WSE</th><th style="padding: 2px 4px; text-align: right;">σ</th></tr>
+ </thead>
+ <tbody>${tableRows}</tbody>
+ </table>
+ </div>
+ ` : ''}
+ <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.2); font-size: 11px;">
+ <div style="color: #94a3b8; font-weight: bold; margin-bottom: 2px;"> provenance reference NASA:</div>
+ <div>• <strong>Data Product:</strong> ${g.product_name}</div>
+ <div>• <strong>Archive / DAAC:</strong> ${g.archive_daac}</div>
+ <div>• <strong>Product DOI:</strong> <a href="${g.doi_url}" target="_blank" style="color: #38bdf8; text-decoration: underline;">${g.doi}</a></div>
+ </div>
+ <div class="popup-reason" style="margin-top: 6px;"> <strong>Exclusion Rationale:</strong> ${g.reason}</div>
+ <button onclick="copyToClipboard('${g.lat}, ${g.lon}')" style="margin-top: 6px; width: 100%; font-size: 11px; padding: 3px 6px; justify-content: center;"> copy coordinates (${g.lat}, ${g.lon})</button>
+ `);
+
+ marker.on('click', function() {
+ showAltimetryGroupInspector(g);
+ });
+
+ layers.altRejected.addLayer(marker);
+ });
+ }
+
+ // 7. Satellite Footprints (S1 Orbits, S2 MGRS Tiles, Landsat Paths)
+ const itemFpS2 = document.getElementById('itemFootprintS2');
+ const itemFpLs = document.getElementById('itemFootprintLandsat');
+ const itemFpS1 = document.getElementById('itemFootprintS1');
+ const itemFpS2Sat = document.getElementById('itemFootprintS2_sat');
+ const itemFpLsSat = document.getElementById('itemFootprintLandsat_sat');
+ const itemFpS1Sat = document.getElementById('itemFootprintS1_sat');
+
+ if (data.satellite_footprints) {
+ const sfp = data.satellite_footprints;
+ if (itemFpS2) itemFpS2.style.display = sfp.s2_tiles ? 'flex' : 'none';
+ if (itemFpLs) itemFpLs.style.display = sfp.landsat_paths ? 'flex' : 'none';
+ if (itemFpS1) itemFpS1.style.display = sfp.s1_orbits ? 'flex' : 'none';
+ if (itemFpS2Sat) itemFpS2Sat.style.display = sfp.s2_tiles ? 'flex' : 'none';
+ if (itemFpLsSat) itemFpLsSat.style.display = sfp.landsat_paths ? 'flex' : 'none';
+ if (itemFpS1Sat) itemFpS1Sat.style.display = sfp.s1_orbits ? 'flex' : 'none';
+
+ // 7a. Sentinel-2 MGRS Tiles
+ if (sfp.s2_tiles && sfp.s2_tiles.features) {
+ sfp.s2_tiles.features.forEach(feat => {
+ const t = feat.properties.tile;
+ const isMaster = feat.properties.status === 'MASTER';
+ const color = isMaster ? '#38bdf8' : '#f59e0b';
+ const cov = isMaster ? '100.0% (Full coverage of reservoir body and dam crest)' : '61.02% (Partial coverage: dam crest omitted)';
+ const poly = L.geoJSON(feat, {
+ style: {
+ color: color,
+ weight: 2.5,
+ dashArray: isMaster ? '6, 6' : '3, 4',
+ fillColor: color,
+ fillOpacity: 0.05
+ }
+ });
+ poly.bindPopup(`
+ <div class="popup-title"> Sentinel-2 MGRS Tile: ${t}</div>
+ <div class="popup-row"><span class="popup-label">Role:</span> <span class="popup-val" style="color: ${color}; font-weight: bold;">${isMaster ? 'MASTER (MANDATORY)' : 'SECONDARY WEST'}</span></div>
+ <div class="popup-row"><span class="popup-label">Reservoir Coverage Fraction:</span> <span class="popup-val">${cov}</span></div>
+ <div class="popup-reason">${isMaster ? 'Covers 100% of Ialy reservoir surface area, dam crest, and Sa Binh / Dak Bla confluence.' : 'Covers only the western reach; omits dam crest without tile mosaic.'}</div>
+ `);
+ layers.footprintS2.addLayer(poly);
+ });
+ }
+
+ // 7b. Landsat WRS-2 Paths
+ if (sfp.landsat_paths && sfp.landsat_paths.features) {
+ sfp.landsat_paths.features.forEach(feat => {
+ const p = feat.properties.path;
+ const isMaster = feat.properties.status === 'VALID_MASTER';
+ const color = isMaster ? '#38bdf8' : '#eab308';
+ const cov = isMaster ? '100.0% (Complete reservoir coverage)' : '67.0% (Eastern reach truncated)';
+ const poly = L.geoJSON(feat, {
+ style: {
+ color: color,
+ weight: 2.5,
+ dashArray: isMaster ? '8, 8' : '4, 4',
+ fillColor: color,
+ fillOpacity: 0.05
+ }
+ });
+ poly.bindPopup(`
+ <div class="popup-title"> Landsat WRS-2 Path: ${p}</div>
+ <div class="popup-row"><span class="popup-label">Role:</span> <span class="popup-val" style="color: ${color}; font-weight: bold;">${isMaster ? 'MASTER PATH (valid)' : 'TRUNCATED PATH (flagged)'}</span></div>
+ <div class="popup-row"><span class="popup-label">Reservoir Coverage Fraction:</span> <span class="popup-val">${cov}</span></div>
+ <div class="popup-reason">${isMaster ? 'Swath encompasses 100% of Ialy reservoir; calibrated in profile (landsat_valid_paths: [124]).' : 'Covers only western boundary; truncates dam crest and Sa Binh confluence.'}</div>
+ `);
+ layers.footprintLandsat.addLayer(poly);
+ });
+ }
+
+ // 7c. Sentinel-1 Relative Orbits
+ if (sfp.s1_orbits && sfp.s1_orbits.features) {
+ sfp.s1_orbits.features.forEach(feat => {
+ const orb = feat.properties.orbit;
+ const isPrimary = feat.properties.status === 'VALID_PRIMARY';
+ const isShadow = feat.properties.status === 'SHADOW_REJECTED';
+ const color = isPrimary ? '#10b981' : (isShadow ? '#f97316' : '#ef4444');
+ const cov = isPrimary ? '100.0% (Optimal baseline, zero terrain shadow)' : (isShadow ? '100.0% (Affected by Sa Thay terrain shadow)' : '61.32% (Reservoir body truncated)');
+ const poly = L.geoJSON(feat, {
+ style: {
+ color: color,
+ weight: 2.5,
+ dashArray: isPrimary ? '5, 5' : '2, 4',
+ fillColor: color,
+ fillOpacity: 0.05
+ }
+ });
+ poly.bindPopup(`
+ <div class="popup-title"> Sentinel-1 SAR Relative Orbit: ${orb}</div>
+ <div class="popup-row"><span class="popup-label">Status:</span> <span class="popup-val" style="color: ${color}; font-weight: bold;">${feat.properties.status}</span></div>
+ <div class="popup-row"><span class="popup-label">Geometric Coverage:</span> <span class="popup-val">${cov}</span></div>
+ <div class="popup-reason">${isPrimary ? 'Descending pass optimal: eastern plateau viewing geometry eliminates terrain shadow; cross-sensor difference with S2 is only 1.22 km².' : (isShadow ? 'Subject to radar shadow on the western slopes of Sa Thay mountain (Excluded in profile).' : 'Ascending pass truncates reservoir extent to 61.32% (Excluded in profile).')}</div>
+ `);
+ layers.footprintS1.addLayer(poly);
+ });
+ }
+ } else {
+ if (itemFpS2) itemFpS2.style.display = 'none';
+ if (itemFpLs) itemFpLs.style.display = 'none';
+ if (itemFpS1) itemFpS1.style.display = 'none';
+ if (itemFpS2Sat) itemFpS2Sat.style.display = 'none';
+ if (itemFpLsSat) itemFpLsSat.style.display = 'none';
+ if (itemFpS1Sat) itemFpS1Sat.style.display = 'none';
+ }
+
+ // update Reach Inspector list
+ updateReachInspector(data);
+
+ // update Altimetry Catalog list
+ updateAltimetryTable(data);
+
+ // update Quick View buttons
+ updateQuickZoomButtons(damId);
+
+ // Automatically fit bounds to reservoir polygon
+ if (layers.lakePoly.getLayers().length > 0) {
+ map.fitBounds(layers.lakePoly.getBounds(), { padding: [25, 25] });
+ }
+ }
+
+ function updateReachInspector(data) {
+ const listContainer = document.getElementById('reachesList');
+ if (!listContainer) return;
+ listContainer.innerHTML = '';
+
+ const allReaches = [
+ ...(data.reaches_whitelisted ? data.reaches_whitelisted.features : []),
+ ...(data.reaches_excluded ? data.reaches_excluded.features : [])
+ ];
+
+ allReaches.forEach(feat => {
+ const p = feat.properties;
+ const isWl = p.status === 'WHITELISTED';
+ const row = document.createElement('div');
+ row.className = 'list-row';
+ row.innerHTML = `
+ <span><strong>${p.reach_id}</strong> <small style="color: #94a3b8;">(${Math.round(p.length_m)}m)</small></span>
+ <span class="${isWl ? 'tag-wl' : 'tag-ex'}">${isWl ? 'ACCEPTED' : 'FLAGGED'}</span>
+ `;
+ row.onclick = () => {
+ const tempGeo = L.geoJSON(feat);
+ map.fitBounds(tempGeo.getBounds(), { maxZoom: 14 });
+ };
+ listContainer.appendChild(row);
+ });
+ }
+
+ // Interactive satellite altimetry station catalog table
+ function updateAltimetryTable(data) {
+ const listContainer = document.getElementById('altimetryList');
+ const totalBadge = document.getElementById('altListTotal');
+ if (!listContainer || !data.altimetry_accepted) return;
+
+ const feats = data.altimetry_accepted.features || [];
+ if (totalBadge) totalBadge.innerText = feats.length;
+ listContainer.innerHTML = '';
+
+ // Sort chronologically descending (newest first)
+ // Count sensors dynamically
+ let cSwot = 0, cIce = 0, cRadar = 0;
+ feats.forEach(f => {
+ const su = (f.properties.sensor || '').toUpperCase();
+ if (su.includes('SWOT')) cSwot++;
+ else if (su.includes('SENTINEL') || su.includes('SRAL') || su.includes('CRYOSAT') || su.includes('SIRAL') || su.includes('SARAL') || su.includes('ALTIKA') || su.includes('RADAR')) cRadar++;
+ else cIce++;
+ });
+ const bSwot = document.getElementById('btnFilterSwot');
+ const bIce = document.getElementById('btnFilterIcesat');
+ const bRadar = document.getElementById('btnFilterRadar');
+ if (bSwot) bSwot.innerText = `SWOT (${cSwot})`;
+ if (bIce) bIce.innerText = `ICESat-2 (${cIce})`;
+ if (bRadar) bRadar.innerText = `Radar L2 (${cRadar})`;
+
+ const sortedFeats = [...feats].sort((a, b) => (b.properties.date > a.properties.date ? 1 : -1));
+
+ sortedFeats.forEach(f => {
+ const p = f.properties;
+ const coords = f.geometry.coordinates; // [lon, lat]
+ const su = (p.sensor || '').toUpperCase();
+ const isSwot = p.sensor_type === 'SWOT' || su.includes('SWOT');
+ const isRadar = su.includes('SENTINEL') || su.includes('SRAL') || su.includes('CRYOSAT') || su.includes('SIRAL') || su.includes('SARAL') || su.includes('ALTIKA') || su.includes('RADAR');
+ let sType = 'ICESAT';
+ let sensorTag = 'ICESat-2';
+ let tagClass = 'tag-icesat';
+ if (isSwot) {
+ sType = 'SWOT';
+ sensorTag = 'SWOT';
+ tagClass = 'tag-wl';
+ } else if (isRadar) {
+ sType = 'RADAR';
+ if (su.includes('SENTINEL') || su.includes('SRAL')) sensorTag = 'Sentinel-3';
+ else if (su.includes('CRYOSAT') || su.includes('SIRAL')) sensorTag = 'CryoSat-2';
+ else if (su.includes('SARAL') || su.includes('ALTIKA')) sensorTag = 'SARAL';
+ else sensorTag = 'Radar L2';
+ tagClass = 'tag-radar';
+ }
+ const stationKey = `${coords[1].toFixed(5)}_${coords[0].toFixed(5)}`;
+
+ const row = document.createElement('div');
+ row.className = 'list-row';
+ row.dataset.sensorType = sType;
+ row.style.fontSize = '10.5px';
+ row.innerHTML = `
+ <div style="display: flex; align-items: center; gap: 5px;">
+ <span>${sensorIcon}</span>
+ <span style="font-weight: 600; color: #f8fafc;">${p.date}</span>
+ <span class="${tagClass}" style="font-size: 8px; padding: 1px 3px;">${sensorTag}</span>
+ </div>
+ <div style="text-align: right;">
+ <span style="color: #4ade80; font-weight: bold; font-family: monospace;">${parseFloat(p.elevation_m).toFixed(2)}m</span>
+ <small style="color: #94a3b8; font-size: 8.5px;">±${p.uncertainty_m || '0.05'}m</small>
+ </div>
+ `;
+ row.onclick = () => {
+ focusAltimetryPoint(coords[1], coords[0], stationKey);
+ showAltimetryGroupInspector({
+ lat: coords[1],
+ lon: coords[0],
+ sensor: p.sensor,
+ sensor_type: p.sensor_type,
+ status: p.status,
+ status_vn: p.status_vn,
+ product_name: p.product_name,
+ archive_daac: p.archive_daac,
+ doi: p.doi,
+ doi_url: p.doi_url,
+ reason: p.reason,
+ color: p.color,
+ orbit_track_info: p.orbit_track_info,
+ photons: p.photons,
+ dem_elevation_m: p.dem_elevation_m,
+ items: [p],
+ count: 1
+ });
+ };
+ listContainer.appendChild(row);
+ });
+ }
+
+ function filterAltimetryList(type) {
+ const btnAll = document.getElementById('btnFilterAll');
+ const btnSwot = document.getElementById('btnFilterSwot');
+ const btnIce = document.getElementById('btnFilterIcesat');
+ const btnRadar = document.getElementById('btnFilterRadar');
+ if (btnAll) btnAll.classList.toggle('active', type === 'ALL');
+ if (btnSwot) btnSwot.classList.toggle('active', type === 'SWOT');
+ if (btnIce) btnIce.classList.toggle('active', type === 'ICESAT');
+ if (btnRadar) btnRadar.classList.toggle('active', type === 'RADAR');
+
+ const rows = document.querySelectorAll('#altimetryList .list-row');
+ rows.forEach(r => {
+ if (type === 'ALL' || r.dataset.sensorType === type) {
+ r.style.display = 'flex';
+ } else {
+ r.style.display = 'none';
+ }
+ });
+ }
+
+ function focusAltimetryPoint(lat, lon, stationKey) {
+ map.flyTo([lat, lon], 16, { duration: 1 });
+ if (altMarkersRegistry[stationKey]) {
+ setTimeout(() => {
+ altMarkersRegistry[stationKey].openPopup();
+ }, 600);
+ }
+ }
+
+ function updateQuickZoomButtons(damId) {
+ const container = document.getElementById('quickZoomBtns');
+ if (!container) return;
+ container.innerHTML = '';
+ const data = window.SURVEYOR_DATA ? window.SURVEYOR_DATA[damId] : null;
+
+ // Button 1: Full Reservoir Extent
+ const btnFull = document.createElement('button');
+ btnFull.innerText = ' Full Reservoir Extent';
+ btnFull.onclick = () => {
+ if (layers.lakePoly && layers.lakePoly.getLayers().length > 0) {
+ map.fitBounds(layers.lakePoly.getBounds(), { padding: [25, 25] });
+ }
+ };
+ container.appendChild(btnFull);
+
+ if (damId === 'yali_falls') {
+ // Button 1: Full Reservoir Extent MNDBT 64.5 km2
+ btnFull.innerHTML = ' Full Reservoir Extent (64.5 km²)';
+ btnFull.style.borderColor = '#f59e0b';
+ btnFull.onclick = () => {
+ if (layers.lakePolyNPL && layers.lakePolyNPL.getLayers().length > 0) {
+ map.fitBounds(layers.lakePolyNPL.getBounds(), { padding: [25, 25] });
+ }
+ };
+
+ // Button 2: Deep Calm Pool Altimetry Mask (Step 02)
+ const btnStatic = document.createElement('button');
+ btnStatic.innerHTML = ' Altimetry Calm Basin (Hydrodynamic Mask)';
+ btnStatic.style.borderColor = '#38bdf8';
+ btnStatic.onclick = () => {
+ if (layers.lakePoly && layers.lakePoly.getLayers().length > 0) {
+ map.fitBounds(layers.lakePoly.getBounds(), { padding: [25, 25] });
+ }
+ };
+ container.appendChild(btnStatic);
+
+ // Button 3: Ialy Dam Crest
+ const btnDam = document.createElement('button');
+ btnDam.innerHTML = ' Ialy Dam Crest';
+ btnDam.style.borderColor = '#ff0033';
+ btnDam.onclick = () => map.flyTo([14.231, 107.831], 15);
+ container.appendChild(btnDam);
+
+ // Button 4: Sa Binh / Dak Bla Confluence
+ const btnSaBinh = document.createElement('button');
+ btnSaBinh.innerHTML = ' Sa Binh / Dak Bla Confluence';
+ btnSaBinh.style.borderColor = '#ec4899';
+ btnSaBinh.onclick = () => map.flyTo([14.34, 107.95], 13);
+ container.appendChild(btnSaBinh);
+
+ // Button 5: Pleikrong Dam Foot (river Po Ko)
+ const btnPleikrong = document.createElement('button');
+ btnPleikrong.innerHTML = ' Pleikrong Dam Foot';
+ btnPleikrong.style.borderColor = '#ff9900';
+ btnPleikrong.onclick = () => map.flyTo([14.364, 107.868], 15);
+ container.appendChild(btnPleikrong);
+
+ // Button 6: SWOT KaRIn Zone
+ const btnSwot = document.createElement('button');
+ btnSwot.innerHTML = ' SWOT KaRIn Reach (45 nodes)';
+ btnSwot.style.borderColor = '#00ffff';
+ btnSwot.onclick = () => map.flyTo([14.306, 107.855], 14);
+ container.appendChild(btnSwot);
+
+ // Button 7: ICESat-2 Reservoir Tracks
+ const btnIce = document.createElement('button');
+ btnIce.innerHTML = ' ICESat-2 (10 nodes)';
+ btnIce.style.borderColor = '#ffea00';
+ btnIce.onclick = () => map.flyTo([14.265, 107.848], 14);
+ container.appendChild(btnIce);
+ } else {
+ // Button 2: Dam Crest (from dam_crest_cut_line)
+ if (data && data.dam_crest_cut_line && data.dam_crest_cut_line.length > 0) {
+ const pt = data.dam_crest_cut_line[0];
+ const btnDam = document.createElement('button');
+ btnDam.innerText = ' Dam Crest Transect';
+ btnDam.onclick = () => map.flyTo([pt[1], pt[0]], 15);
+ container.appendChild(btnDam);
+ }
+
+ // Button 3: Upstream Reservoir Tail (from upstream_boundary_cut_line)
+ if (data && data.upstream_boundary_cut_line && data.upstream_boundary_cut_line.length > 0) {
+ const ptUp = data.upstream_boundary_cut_line[0];
+ const btnUp = document.createElement('button');
+ btnUp.innerText = 'Upstream Reservoir Tail / Backwater';
+ btnUp.onclick = () => map.flyTo([ptUp[1], ptUp[0]], 14);
+ container.appendChild(btnUp);
+ }
+ }
+ }
+
+ function showAltimetryGroupInspector(g) {
+ const card = document.getElementById('altInspectorCard');
+ if (!card) return;
+ const isAccepted = g.status === 'ACCEPTED';
+ const tagClass = isAccepted ? 'tag-wl' : 'tag-ex';
+ const isMulti = g.count > 1;
+ const p0 = g.items[0];
+
+ const sparklineHtml = renderSparklineSVG(g.items, 280, 52);
+ const tableRows = g.items.map(it => `
+ <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 10px;">
+ <td style="padding: 2px 4px; color: #94a3b8;">${it.date}</td>
+ <td style="padding: 2px 4px; color: ${isAccepted ? '#4ade80' : '#f87171'}; font-weight: bold; text-align: right;">${parseFloat(it.elevation_m).toFixed(2)} m</td>
+ <td style="padding: 2px 4px; color: #cbd5e1; text-align: right;">±${it.uncertainty_m || '0.05'}m</td>
+ </tr>
+ `).join('');
+
+ card.innerHTML = `
+ <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+ <strong style="color: #f8fafc; font-size: 12.5px;"> ${g.sensor} ${isMulti ? `(${g.count} passes)` : ''}</strong>
+ <span class="${tagClass}">${g.status_vn}</span>
+ </div>
+ <div style="display: grid; grid-template-columns: 85px 1fr; gap: 3px; margin-bottom: 6px;">
+ <span style="color: #94a3b8;">Geodetic Coordinates:</span>
+ <span style="color: #38bdf8; font-family: monospace; font-weight: bold;">${g.lat.toFixed(5)}°N, ${g.lon.toFixed(5)}°E</span>
+ ${isMulti ? `
+ <span style="color: #94a3b8;">Elevation Range:</span>
+ <span style="color: #4ade80; font-weight: bold;">${g.minElev.toFixed(2)}m – ${g.maxElev.toFixed(2)}m</span>
+ <span style="color: #94a3b8;">Amplitude / Mean:</span>
+ <span style="color: #f1f5f9;">Δ = ${(g.maxElev - g.minElev).toFixed(2)}m (Mean: ${g.meanElev.toFixed(2)}m)</span>
+ <span style="color: #94a3b8;">Observation Record:</span>
+ <span style="color: #f1f5f9; font-size: 10px;">${g.items[0].date} &rarr; ${g.items[g.items.length-1].date}</span>
+ ` : `
+ <span style="color: #94a3b8;">Observation Date:</span>
+ <span style="color: #f1f5f9; font-weight: bold;">${p0.date}</span>
+ <span style="color: #94a3b8;">Elevation WSE:</span>
+ <span style="color: #4ade80; font-weight: bold;">${p0.elevation_m} m <small style="color: #94a3b8;">(±${p0.uncertainty_m}m)</small></span>
+ `}
+ </div>
+ ${sparklineHtml}
+ ${isMulti ? `
+ <div style="margin-top: 6px; font-size: 11px; font-weight: bold; color: #94a3b8;"> Details of ${g.count} observation passes:</div>
+ <div style="max-height: 120px; overflow-y: auto; background: #070d18; border: 1px solid #1e293b; border-radius: 4px; margin-top: 3px;">
+ <table style="width: 100%; border-collapse: collapse;">
+ <thead style="background: #1e293b; color: #94a3b8; font-size: 9.5px; position: sticky; top: 0;">
+ <tr><th style="padding: 2px 4px; text-align: left;">Date</th><th style="padding: 2px 4px; text-align: right;">WSE</th><th style="padding: 2px 4px; text-align: right;">σ</th></tr>
+ </thead>
+ <tbody>${tableRows}</tbody>
+ </table>
+ </div>
+ ` : ''}
+ <div style="border-top: 1px dashed #334155; padding-top: 6px; margin-top: 6px;">
+ <div style="color: #cbd5e1; font-weight: bold; margin-bottom: 4px;"> provenance reference NASA:</div>
+ <div style="color: #94a3b8; font-size: 11px;">• <strong>Data Product:</strong> ${g.product_name}</div>
+ <div style="color: #94a3b8; font-size: 11px;">• <strong>Archive / DAAC:</strong> ${g.archive_daac}</div>
+ <div style="color: #94a3b8; font-size: 11px;">• <strong>Orbit / Ground Track:</strong> <code style="color: #fcd34d;">${g.orbit_track_info || 'SWORD Reach Node'}</code></div>
+ ${g.photons ? `<div style="color: #94a3b8; font-size: 11px;">• <strong>Laser Photons:</strong> ${g.photons} photons</div>` : ''}
+ ${g.dem_elevation_m ? `<div style="color: #94a3b8; font-size: 11px;">• <strong>DEM:</strong> ${g.dem_elevation_m} m</div>` : ''}
+ <div style="color: #94a3b8; font-size: 11px;">• <strong>Product DOI:</strong> <a href="${g.doi_url}" target="_blank" style="color: #38bdf8; text-decoration: underline;">${g.doi}</a></div>
+ </div>
+ <div style="background: rgba(15, 23, 42, 0.6); padding: 5px; border-radius: 4px; border-left: 2px solid ${isAccepted ? '#10b981' : '#f87171'}; margin-top: 6px; font-size: 11px; color: #cbd5e1;">
+ ${isAccepted ? '' : ''} ${g.reason}
+ </div>
+ <div style="margin-top: 8px;">
+ <button onclick="copyToClipboard('${g.lat}, ${g.lon}')" style="width: 100%; font-size: 11px; padding: 4px 8px; justify-content: center;"> copy coordinates (${g.lat}, ${g.lon})</button>
+ </div>
+ `;
+ }
+
+ function showAltimetryInspector(p) {
+ showAltimetryGroupInspector({ ...p, items: [p], count: 1 });
+ }
+
+ function copyToClipboard(text) {
+ if (navigator.clipboard) {
+ navigator.clipboard.writeText(text).then(() => {
+ alert('Coordinates copied to clipboard: ' + text);
+ }).catch(err => {
+ prompt('Coordinates:', text);
+ });
+ } else {
+ prompt('Coordinates:', text);
+ }
+ }
+
+ function switchDam(damId) {
+ renderDamData(damId);
+ const satPanel = document.getElementById('panelSatellite');
+ if (satPanel && satPanel.style.display === 'flex') {
+ const damSat = window.SATELLITE_OVERLAY_DATA ? window.SATELLITE_OVERLAY_DATA[damId] : null;
+ if (damSat && damSat.leaflet_bounds) {
+ map.fitBounds(damSat.leaflet_bounds, { padding: [30, 30] });
+ }
+ if (typeof renderSatelliteEvents === 'function') {
+ renderSatelliteEvents(damId);
+ const defaultEvt = damSat ? Object.keys(damSat.events)[0] : '2022-02-08';
+ selectSatelliteEvent(defaultEvt);
+ }
+ }
+ }
+
+ // --- 1:1 TRANSECT DIGITIZER ENGINE ---
+ let isDrawing = false;
+ let points = [];
+ let markers = [];
+ let polyline = L.polyline([], { color: '#00ff66', weight: 4, dashArray: '6, 6' }).addTo(map);
+
+ function toggleDrawing() {
+ isDrawing = !isDrawing;
+ const btn = document.getElementById('btnDraw');
+ if (isDrawing) {
+ btn.classList.add('active');
+ btn.innerText = ' Digitizing Active (Click Map)';
+ } else {
+ btn.classList.remove('active');
+ btn.innerText = ' Enable Point Digitizing';
+ }
+ }
+
+ map.on('click', function(e) {
+ if (!isDrawing) return;
+ const lat = parseFloat(e.latlng.lat.toFixed(6));
+ const lon = parseFloat(e.latlng.lng.toFixed(6));
+
+ points.push([lon, lat]);
+ const marker = L.circleMarker([lat, lon], {
+ radius: 6,
+ fillColor: '#ffff00',
+ color: '#000000',
+ weight: 2,
+ opacity: 1,
+ fillOpacity: 0.95
+ }).addTo(map);
+
+ marker.bindTooltip(`P${points.length}: [${lon}, ${lat}]`, { permanent: false, direction: 'top' });
+ markers.push(marker);
+
+ updatePolyline();
+ });
+
+ function updatePolyline() {
+ const latlngs = points.map(pt => [pt[1], pt[0]]);
+ polyline.setLatLngs(latlngs);
+
+ const listContainer = document.getElementById('pointsList');
+ listContainer.innerHTML = '';
+ points.forEach((pt, idx) => {
+ const item = document.createElement('div');
+ item.className = 'list-row';
+ item.innerHTML = `<span>#${idx+1}: [${pt[0]}, ${pt[1]}]</span>`;
+ listContainer.appendChild(item);
+ });
+ document.getElementById('pointCount').innerText = points.length;
+
+ const jsonStr = JSON.stringify(points, null, 2);
+ document.getElementById('jsonOutput').value = jsonStr;
+ }
+
+ function clearPoints() {
+ points = [];
+ markers.forEach(m => map.removeLayer(m));
+ markers = [];
+ polyline.setLatLngs([]);
+ document.getElementById('pointsList').innerHTML = '';
+ document.getElementById('pointCount').innerText = '0';
+ document.getElementById('jsonOutput').value = '';
+ }
+
+ function undoLastPoint() {
+ if (points.length === 0) return;
+ points.pop();
+ const lastMarker = markers.pop();
+ if (lastMarker) map.removeLayer(lastMarker);
+ updatePolyline();
+ }
+
+ function copyJson() {
+ const textarea = document.getElementById('jsonOutput');
+ if (!textarea.value) {
+ alert('No points digitized yet!');
+ return;
+ }
+ textarea.select();
+ document.execCommand('copy');
+ alert('GeoJSON coordinates copied to clipboard!');
+ }
+
+ // ============================================================
+ // REMOTE SENSING SATELLITE OVERLAYS & MULTI-SENSOR FUSION (STEP 3 PROOF ENGINE)
+ // ============================================================
+ let currentSatEvent = null;
+ const satOverlays = {};
+
+ const SAT_LAYER_METADATA = {
+ 'nuozhadu': {
+ '2022-02-08': [
+ { id: 's2_rgb', label: ' Sentinel-2 MSI True Color RGB (10m)', color: '#38bdf8', defaultVisible: true, defaultOpacity: 85, zIndex: 10, note: 'Sharp dry-season optical imagery (Tile 47QPF)' },
+ { id: 's1_vv', label: ' Sentinel-1 SAR VV Grayscale (10m)', color: '#94a3b8', defaultVisible: false, defaultOpacity: 75, zIndex: 11, note: 'C-band co-polarization VV backscatter (Orbit 99)' },
+ { id: 's2_water', label: ' Sentinel-2 AWEI Water Mask (Optical)', color: '#06b6d4', defaultVisible: false, defaultOpacity: 75, zIndex: 20, note: '36.13 km² - Extracted from multispectral AWEI index' },
+ { id: 's1_water', label: ' Sentinel-1 Two-Tier Water Mask (SAR)', color: '#f59e0b', defaultVisible: false, defaultOpacity: 75, zIndex: 21, note: '35.19 km² - Two-tier dual-threshold SAR classification' },
+ { id: 'fused_water', label: ' Multi-Sensor Fused Water Mask (S1 + S2)', color: '#10b981', defaultVisible: true, defaultOpacity: 80, zIndex: 30, note: '36.29 km² - 97.4% cross-sensor agreement (0.93 km² delta)' }
+ ],
+ '2020-04-19': [
+ { id: 's2_rgb', label: ' Sentinel-2 MSI (Cloud & Shadow Mask)', color: '#38bdf8', defaultVisible: true, defaultOpacity: 85, zIndex: 10, note: 'Optical imagery heavily obscured by convective gorge clouds' },
+ { id: 's1_vv', label: ' Sentinel-1 SAR VV (Cloud-Penetrating Radar)', color: '#94a3b8', defaultVisible: false, defaultOpacity: 75, zIndex: 11, note: 'C-band microwave penetrates convective clouds, exposing water extent' },
+ { id: 's2_water', label: ' Sentinel-2 Water Obscured by Cloud (-35% Loss)', color: '#06b6d4', defaultVisible: false, defaultOpacity: 75, zIndex: 20, note: '23.45 km² - Substantial water surface masked by cloud shadow' },
+ { id: 's1_water', label: ' Sentinel-1 SAR Full Water Recovery', color: '#f59e0b', defaultVisible: false, defaultOpacity: 75, zIndex: 21, note: '33.81 km² - All-weather microwave SAR observation' },
+ { id: 'fused_water', label: ' Fused Rescue: SAR Recovers Cloud-Covered Water', color: '#ec4899', defaultVisible: true, defaultOpacity: 85, zIndex: 30, note: '34.82 km² - Successfully recovered +11.37 km² (+48.5%) cloud-obscured water!' }
+ ]
+ },
+ 'jinghong': {
+ '2022-02-08': [
+ { id: 's2_rgb', label: ' Sentinel-2 MSI True Color RGB (10m 2-Tile Mosaic)', color: '#38bdf8', defaultVisible: true, defaultOpacity: 85, zIndex: 10, note: 'Mosaic of Tile 47QPE (North) + 47QPF (South of Jinghong dam)' },
+ { id: 's1_vv', label: ' Sentinel-1 SAR VV Grayscale (10m)', color: '#94a3b8', defaultVisible: false, defaultOpacity: 75, zIndex: 11, note: 'C-band co-polarization VV backscatter (Orbit 99)' },
+ { id: 'l8_rgb', label: ' Landsat-8 True Color RGB (30m)', color: '#0284c7', defaultVisible: false, defaultOpacity: 80, zIndex: 12, note: 'Scene 2022-02-15 Path 130 Row 45 completely covers Jinghong' },
+ { id: 's2_water', label: ' Sentinel-2 AWEI Water Mask (Optical)', color: '#06b6d4', defaultVisible: false, defaultOpacity: 75, zIndex: 20, note: '26.40 km² - Multispectral AWEI water extraction (calibrated at dam axis)' },
+ { id: 's1_water', label: ' Sentinel-1 Two-Tier Water Mask (SAR)', color: '#f59e0b', defaultVisible: false, defaultOpacity: 75, zIndex: 21, note: '25.36 km² - Two-tier SAR dual-threshold classification' },
+ { id: 'fused_water', label: ' Multi-Sensor Fused Water Mask (S1 + S2)', color: '#10b981', defaultVisible: true, defaultOpacity: 80, zIndex: 30, note: '26.40 km² - 96.1% cross-sensor agreement (1.04 km² delta)' },
+ { id: 'l8_water', label: ' Landsat-8 AWEI Water Mask (30m)', color: '#eab308', defaultVisible: false, defaultOpacity: 70, zIndex: 22, note: '23.81 km² - 30m resolution reflects dry-season trend' }
+ ],
+ '2021-06-13': [
+ { id: 's2_rgb', label: ' Sentinel-2 MSI (Dense Cumulus Cloud Cover)', color: '#38bdf8', defaultVisible: true, defaultOpacity: 85, zIndex: 10, note: 'Monsoon flood season: 21.32% of reservoir obscured by cumulus cloud cover' },
+ { id: 's1_vv', label: ' Sentinel-1 SAR VV (Cloud-Penetrating Microwave)', color: '#94a3b8', defaultVisible: false, defaultOpacity: 75, zIndex: 11, note: 'C-band microwave penetrates summer monsoon clouds (Orbit 135)' },
+ { id: 's2_water', label: ' Sentinel-2 Water Area Artificially Collapsed (-87%)', color: '#06b6d4', defaultVisible: false, defaultOpacity: 75, zIndex: 20, note: '3.24 km² - Severe optical loss caused by cloud obscuration' },
+ { id: 's1_water', label: ' Sentinel-1 SAR Clean Water Extent', color: '#f59e0b', defaultVisible: false, defaultOpacity: 75, zIndex: 21, note: '25.07 km² - Weather-independent SAR measurement' },
+ { id: 'fused_water', label: ' Fused Rescue: SAR Recovers Cloud-Covered Water', color: '#ec4899', defaultVisible: true, defaultOpacity: 85, zIndex: 30, note: '25.10 km² - SAR recovered +21.83 km² (+673.8%) cloud-obscured water surface!' }
+ ]
+ },
+ 'yali_falls': {
+ '2024-02-16': [
+ { id: 's2_rgb', label: ' Sentinel-2 MSI True Color RGB (10m Tile 48PZA)', color: '#38bdf8', defaultVisible: true, defaultOpacity: 85, zIndex: 10, note: 'Dry season in Central Highlands (0% cloud): Sa Binh sandbars fully exposed' },
+ { id: 's1_vv', label: ' Sentinel-1 SAR VV Grayscale (10m Orbit 120/55)', color: '#94a3b8', defaultVisible: false, defaultOpacity: 75, zIndex: 11, note: 'C-band VV polarization backscatter (2024-02-19)' },
+ { id: 'l9_rgb', label: ' Landsat-9 OLI-2 True Color RGB (30m Path 124)', color: '#0284c7', defaultVisible: false, defaultOpacity: 80, zIndex: 12, note: 'Scene 2024-02-19 Path 124 Row 50 encompasses 100% of Ialy reservoir' },
+ { id: 's2_water', label: ' Sentinel-2 MNDWI Water Mask (Optical)', color: '#06b6d4', defaultVisible: false, defaultOpacity: 75, zIndex: 20, note: '24.75 km² - Reservoir contracted to deep thalweg basin during dry season' },
+ { id: 's1_water', label: ' Sentinel-1 Two-Tier SAR Water Mask (Microwave)', color: '#f59e0b', defaultVisible: false, defaultOpacity: 75, zIndex: 21, note: '21.31 km² - Identifies deep calm water surface; shallow zones subject to wind ripples' },
+ { id: 'l9_water', label: ' Landsat-9 AWEI Water Mask (30m Tier-2)', color: '#eab308', defaultVisible: false, defaultOpacity: 75, zIndex: 22, note: '27.10 km² - Accurately reflects low-flow dry-season storage' },
+ { id: 'fused_water', label: ' Multi-Sensor Fused Water Mask (S1 + S2 + L9)', color: '#10b981', defaultVisible: true, defaultOpacity: 80, zIndex: 30, note: '25.10 km² - Validated against SWOT 503.05m WSE and in-situ altimetry' }
+ ],
+ '2023-11-15': [
+ { id: 's1_vv', label: ' Sentinel-1 SAR VV Grayscale (10m C-Band)', color: '#94a3b8', defaultVisible: false, defaultOpacity: 85, zIndex: 10, note: 'High flood storage 2023: C-band microwave penetrates flood clouds covering entire reservoir' },
+ { id: 's2_rgb', label: ' Sentinel-2 MSI True Color RGB (Full Reservoir Mosaic 2023-11-28)', color: '#38bdf8', defaultVisible: true, defaultOpacity: 80, zIndex: 11, note: 'True optical mosaic of tiles 48PZA+48PZB: Water fully inundates reach up to Pleikrong foot' },
+ { id: 's1_water', label: ' Sentinel-1 SAR Flood Peak Water (55.23 km²)', color: '#f59e0b', defaultVisible: false, defaultOpacity: 75, zIndex: 21, note: '55.23 km² - Corresponds to SWOT 515.32m elevation (full flood envelope)' },
+ { id: 's2_water', label: ' Sentinel-2 MNDWI Mosaic Full Reservoir (58.05 km²)', color: '#06b6d4', defaultVisible: true, defaultOpacity: 75, zIndex: 20, note: '58.05 km² - Optical observation confirms maximum water surface covering Sa Binh and Po Ko River' },
+ { id: 'fused_water', label: ' Multi-Sensor Fused Mask at Flood Peak (60.31 km²)', color: '#10b981', defaultVisible: false, defaultOpacity: 80, zIndex: 30, note: '60.31 km² - 95.1% cross-sensor agreement between SAR radar and optical sensors' }
+ ]
+ }
+ };
+
+ function renderSatelliteEvents(damId) {
+ const titleSpan = document.getElementById('satDamTitle');
+ if (titleSpan) titleSpan.innerText = damId.toUpperCase();
+
+ const container = document.getElementById('satEventBtns');
+ if (!container) return;
+ container.innerHTML = '';
+
+ const damData = window.SATELLITE_OVERLAY_DATA ? window.SATELLITE_OVERLAY_DATA[damId] : null;
+ if (!damData || !damData.events) return;
+
+ Object.keys(damData.events).forEach(dateStr => {
+ const evt = damData.events[dateStr];
+ const btn = document.createElement('button');
+ btn.id = 'btnSatEvt_' + dateStr.replace(/-/g, '');
+ btn.innerText = evt.title;
+ btn.onclick = () => selectSatelliteEvent(dateStr);
+ container.appendChild(btn);
+ });
+ }
+
+ function selectSatelliteEvent(dateStr) {
+ currentSatEvent = dateStr;
+ const damId = (typeof currentDam !== 'undefined' && currentDam) ? currentDam : 'nuozhadu';
+ const allData = window.SATELLITE_OVERLAY_DATA;
+ if (!allData || !allData[damId]) return;
+
+ const damData = allData[damId];
+ if (!damData.events || !damData.events[dateStr]) return;
+
+ const evt = damData.events[dateStr];
+ const bounds = damData.leaflet_bounds;
+
+ // Update active event button state
+ Object.keys(damData.events).forEach(d => {
+ const btnId = 'btnSatEvt_' + d.replace(/-/g, '');
+ const btn = document.getElementById(btnId);
+ if (btn) btn.classList.toggle('active', d === dateStr);
+ });
+
+ // Remove previous satellite overlays from map
+ Object.keys(satOverlays).forEach(k => {
+ if (satOverlays[k]) {
+ map.removeLayer(satOverlays[k]);
+ }
+ });
+
+ // Get configured layer list
+ const configs = (SAT_LAYER_METADATA[damId] && SAT_LAYER_METADATA[damId][dateStr]) || [];
+ const layerContainer = document.getElementById('satLayerControls');
+ if (layerContainer) layerContainer.innerHTML = '';
+
+ // Sort by ascending zIndex for correct rendering order
+ const sortedConfigs = [...configs].sort((a, b) => a.zIndex - b.zIndex);
+
+ sortedConfigs.forEach(cfg => {
+ const imgUrl = evt.layers[cfg.id];
+ if (!imgUrl) return;
+
+ // Create L.imageOverlay
+ const overlay = L.imageOverlay(imgUrl, bounds, {
+ opacity: cfg.defaultOpacity / 100,
+ interactive: false
+ });
+
+ satOverlays[cfg.id] = overlay;
+
+ if (cfg.defaultVisible) {
+ overlay.addTo(map);
+ }
+
+ // Render controls (card + slider)
+ if (layerContainer) {
+ const card = document.createElement('div');
+ card.className = 'sat-layer-card';
+ card.innerHTML = `
+ <div class="sat-layer-header">
+ <label>
+ <input type="checkbox" id="chkSat_${cfg.id}" ${cfg.defaultVisible ? 'checked' : ''} onchange="toggleSatLayer('${cfg.id}')">
+ <span class="legend-dot" style="background: ${cfg.color};"></span>
+ <span>${cfg.label}</span>
+ </label>
+ </div>
+ <div style="font-size: 9.5px; color: #64748b; margin-left: 22px; margin-top: 1px;">
+ ${cfg.note}
+ </div>
+ <div class="slider-container" style="margin-left: 22px;">
+ <span>Opacity:</span>
+ <input type="range" id="sldSat_${cfg.id}" min="0" max="100" value="${cfg.defaultOpacity}" oninput="setSatOpacity('${cfg.id}', this.value)">
+ <span class="slider-val" id="valSat_${cfg.id}">${cfg.defaultOpacity}%</span>
+ </div>
+ `;
+ layerContainer.appendChild(card);
+ }
+ });
+
+ // Update telemetry statistics surface area
+ renderSatelliteStats(damId, dateStr, evt.stats);
+
+ // update CLIN explanation card
+ renderSatelliteExplanation(damId, dateStr);
+ }
+
+ function toggleSatLayer(layerId) {
+ const chk = document.getElementById('chkSat_' + layerId);
+ const overlay = satOverlays[layerId];
+ if (!overlay) return;
+
+ if (chk && chk.checked) {
+ overlay.addTo(map);
+ } else {
+ map.removeLayer(overlay);
+ }
+ }
+
+ function setSatOpacity(layerId, val) {
+ const overlay = satOverlays[layerId];
+ if (overlay) {
+ overlay.setOpacity(parseFloat(val) / 100);
+ }
+ const valSpan = document.getElementById('valSat_' + layerId);
+ if (valSpan) {
+ valSpan.innerText = val + '%';
+ }
+ }
+
+ function resetSatOpacities() {
+ if (!currentSatEvent) return;
+ const damId = (typeof currentDam !== 'undefined' && currentDam) ? currentDam : 'nuozhadu';
+ const configs = (SAT_LAYER_METADATA[damId] && SAT_LAYER_METADATA[damId][currentSatEvent]) || [];
+ configs.forEach(cfg => {
+ const sld = document.getElementById('sldSat_' + cfg.id);
+ if (sld) {
+ sld.value = cfg.defaultOpacity;
+ setSatOpacity(cfg.id, cfg.defaultOpacity);
+ }
+ const chk = document.getElementById('chkSat_' + cfg.id);
+ if (chk) {
+ chk.checked = cfg.defaultVisible;
+ toggleSatLayer(cfg.id);
+ }
+ });
+ }
+
+ function renderSatelliteStats(damId, dateStr, stats) {
+ const grid = document.getElementById('satStatsGrid');
+ if (!grid) return;
+ if (damId === 'yali_falls') {
+ grid.innerHTML = `
+ <div class="stat-box">
+ <div class="stat-val" style="color: #06b6d4;">${stats.s2_area_km2} <small style="font-size: 11px;">km²</small></div>
+ <div class="stat-label">Sentinel-2 MNDWI (10m)</div>
+ </div>
+ <div class="stat-box">
+ <div class="stat-val" style="color: #f59e0b;">${stats.s1_area_km2} <small style="font-size: 11px;">km²</small></div>
+ <div class="stat-label">Sentinel-1 SAR VV (10m)</div>
+ </div>
+ <div class="stat-box" style="grid-column: span 2; border-color: #10b981; background: rgba(16,185,129,0.08);">
+ <div class="stat-val" style="color: #10b981;">${stats.fused_area_km2} <small style="font-size: 11px;">km²</small> (${stats.agreement_pct}%)</div>
+ <div class="stat-label"> Multi-Sensor Fused Mask (S2-S1 Delta: ${stats.diff_s2_s1_km2} km²)</div>
+ </div>
+ ${stats.l9_area_km2 ? `
+ <div class="stat-box" style="grid-column: span 2; border-color: #0284c7; background: rgba(168,85,247,0.08);">
+ <div class="stat-val" style="color: #0284c7;">${stats.l9_area_km2} <small style="font-size: 11px;">km²</small> <span class="badge" style="background: #0284c7; font-size: 9px; vertical-align: middle;">TIER-2 (30m)</span></div>
+ <div class="stat-label"> Landsat-9 OLI-2 (19/02/2024 - Path 124 Row 50)</div>
+ </div>` : ''}
+ ${stats.altimetry_wse_m ? `
+ <div class="stat-box" style="grid-column: span 2; border-color: #38bdf8; background: rgba(56,189,248,0.08);">
+ <div class="stat-val" style="color: #38bdf8;">H = ${stats.altimetry_wse_m} m <small style="font-size: 10px;">(SWOT KaRIn: ${stats.swot_area_km2} km²)</small></div>
+ <div class="stat-label"> 1:1 Ground-Truth Altimetry Validation Nodes</div>
+ </div>` : ''}
+ `;
+ return;
+ }
+ if (dateStr === '2022-02-08') {
+ const isNzd = damId === 'nuozhadu';
+ const l8Note = isNzd ? 'Path 130 Northwest Gap | JRC Terrain Filtered' : 'Path 130 Row 45 (Full Jinghong Coverage)';
+ grid.innerHTML = `
+ <div class="stat-box">
+ <div class="stat-val" style="color: #06b6d4;">${stats.s2_area_km2} <small style="font-size: 11px;">km²</small></div>
+ <div class="stat-label">Sentinel-2 MSI (10m)</div>
+ </div>
+ <div class="stat-box">
+ <div class="stat-val" style="color: #f59e0b;">${stats.s1_area_km2} <small style="font-size: 11px;">km²</small></div>
+ <div class="stat-label">Sentinel-1 SAR (10m)</div>
+ </div>
+ <div class="stat-box" style="grid-column: span 2; border-color: #10b981; background: rgba(16,185,129,0.08);">
+ <div class="stat-val" style="color: #10b981;">${stats.fused_area_km2} <small style="font-size: 11px;">km²</small> (${stats.agreement_pct}%)</div>
+ <div class="stat-label"> Multi-Sensor Fused (Difference: ${stats.diff_s2_s1_km2} km²)</div>
+ </div>
+ ${stats.l8_area_km2 ? `
+ <div class="stat-box" style="grid-column: span 2; border-color: #0284c7; background: rgba(168,85,247,0.08);">
+ <div class="stat-val" style="color: #0284c7;">${stats.l8_area_km2} <small style="font-size: 11px;">km²</small> <span class="badge" style="background: #0284c7; font-size: 9px; vertical-align: middle;">TIER-2</span></div>
+ <div class="stat-label"> Landsat-8 OLI (${l8Note})</div>
+ </div>` : ''}
+ `;
+ } else {
+ const s2LossPct = damId === 'nuozhadu' ? '-35%' : '-87%';
+ grid.innerHTML = `
+ <div class="stat-box">
+ <div class="stat-val" style="color: #f87171;">${stats.s2_area_km2} <small style="font-size: 11px;">km²</small></div>
+ <div class="stat-label">S2 Obscured by Cloud (${s2LossPct})</div>
+ </div>
+ <div class="stat-box">
+ <div class="stat-val" style="color: #f59e0b;">${stats.s1_area_km2} <small style="font-size: 11px;">km²</small></div>
+ <div class="stat-label">S1 SAR Cloud-Penetrating</div>
+ </div>
+ <div class="stat-box" style="grid-column: span 2; border-color: #ec4899; background: rgba(236,72,153,0.12);">
+ <div class="stat-val" style="color: #ec4899;">${stats.fused_area_km2} <small style="font-size: 11px;">km²</small> (+${stats.sar_rescue_pct}%)</div>
+ <div class="stat-label"> SAR Recovered +${stats.sar_rescue_gain_km2} km² Water</div>
+ </div>
+ `;
+ }
+ }
+
+ function renderSatelliteExplanation(damId, dateStr) {
+ const card = document.getElementById('satExplanationCard');
+ if (!card) return;
+ if (damId === 'yali_falls') {
+ if (dateStr === '2024-02-16') {
+ card.innerHTML = `
+ <div style="margin-bottom: 6px;"><strong style="color: #38bdf8;">[Observed Signal]:</strong> Dry season February 2024 (0% cloud): Three independent sensors—Sentinel-2 (24.75 km²), Sentinel-1 SAR (21.31 km²), and Landsat-9 OLI-2 (27.10 km²)—converge on deep thalweg water extent. NASA SWOT KaRIn observed H = 503.05m on 2024-02-17. The eastern Sa Binh floodplains are completely dry and exposed.</div>
+ <div style="margin-bottom: 6px;"><strong style="color: #f87171;">[Flawed Assumption]:</strong> Mistakenly assuming dry-season reservoir area must remain at 64.5 km², falsely questioning remote sensing algorithms when seeing 24.75 km².</div>
+ <div><strong style="color: #10b981;">[Root Cause Correction]:</strong> Hydraulic reality of Ialy reservoir: 64.5 km² is the maximum area at FSL 515m. When drawn down towards DWL 490m in dry seasons, shallow tributaries dry out and the water body naturally contracts to 23–27 km². Remote sensing faithfully captures the 779 MCM active regulation volume!</div>
+ `;
+ } else {
+ card.innerHTML = `
+ <div style="margin-bottom: 6px;"><strong style="color: #38bdf8;">[Observed Signal]:</strong> Peak flood November 2023: Ialy reservoir reached H = 515.32m (SWOT observation on 2023-11-01). Sentinel-1 SAR penetrated clouds on 11/15 to measure 55.23 km², and Sentinel-2 multi-tile mosaic on 11/28 recorded 58.05 km² (multi-sensor fused composite reaches 60.31 km²).</div>
+ <div style="margin-bottom: 6px;"><strong style="color: #f87171;">[Flawed Assumption]:</strong> Relying on a single un-mosaicked S2 tile (48PZA) truncates the eastern half of the reservoir and upper Sa Binh - Pleikrong reach, confusing tile boundary limits with true ground truth.</div>
+ <div><strong style="color: #ec4899;">[Root Cause Correction]:</strong> Ialy reservoir spans across four MGRS tiles (48PZA, 48PZB, 48PYA, 48PYB). Mosaicking all coincident tiles restores truncated optical area from 54.49 km² to 58.05 km², encompassing the complete reach from Pleikrong dam foot to Ialy dam axis!</div>
+ `;
+ }
+ return;
+ }
+ if (damId === 'nuozhadu') {
+ if (dateStr === '2022-02-08') {
+ card.innerHTML = `
+ <div style="margin-bottom: 6px;"><strong style="color: #38bdf8;">[Observed Signal]:</strong> On 2022-02-08 (clear-sky dry season), Sentinel-1 SAR (35.19 km²) and Sentinel-2 MSI (36.13 km²) show <strong>97.4% agreement</strong> (difference of only 0.93 km²). Nuozhadu dam cutline eliminates downstream leakage. Landsat-8 Path 130 covers the upper reservoir reach (27.97 km² clean water after terrain shadow removal).</div>
+ <div style="margin-bottom: 6px;"><strong style="color: #f87171;">[Flawed Assumption]:</strong> Assuming that in the Sentinel era (≥2015), all 137 Landsat scenes should be indiscriminately discarded as <code>DATA_GAP</code>.</div>
+ <div><strong style="color: #10b981;">[Root Cause Correction]:</strong> Rigorous <strong>Tier-2</strong> classification: Discards only 1 coincident scene with Sentinel (2025-12-24) per Coincident Sentinel Precedence; <strong>retains 71 valid Solo Landsat scenes</strong> as Tier-2 gap-fillers with calibrated uncertainty (σ_H = 1.0m), expanding valid records from 451 to 522!</div>
+ `;
+ } else {
+ card.innerHTML = `
+ <div style="margin-bottom: 6px;"><strong style="color: #38bdf8;">[Observed Signal]:</strong> On 2020-04-19, Sentinel-2 MSI was heavily obscured by convective cloud cover, causing optical water area to drop to 23.45 km² (~35% loss). On the same day, Sentinel-1 SAR C-band penetrated cloud cover to recover 33.81 km².</div>
+ <div style="margin-bottom: 6px;"><strong style="color: #f87171;">[Flawed Assumption]:</strong> Blindly relying on optical sensors or linear cloud filling, introducing substantial errors in storage volume.</div>
+ <div><strong style="color: #ec4899;">[Root Cause Correction]:</strong> Multi-Sensor Spatial Complementarity Fusion automatically identifies optical cloud gaps and recruits microwave SAR to recover <strong>+11.37 km² (+48.5%)</strong> obscured water surface, ensuring continuous hydrological timeseries!</div>
+ `;
+ }
+ } else {
+ // jinghong
+ if (dateStr === '2022-02-08') {
+ card.innerHTML = `
+ <div style="margin-bottom: 6px;"><strong style="color: #38bdf8;">[Observed Signal]:</strong> On 2022-02-08 (dry season), Sentinel-1 SAR (25.36 km²) and Sentinel-2 MSI mosaic (26.40 km²) achieved <strong>96.1% agreement</strong> (difference of only 1.04 km²). Jinghong dam cutline prevents tailwater leakage. Landsat-8 OLI (23.81 km²) on 2022-02-15 satisfies Tier-2 criteria.</div>
+ <div style="margin-bottom: 6px;"><strong style="color: #f87171;">[Flawed Assumption]:</strong> Discarding all 86 Landsat scenes post-2015 as DATA_GAP under the assumption that Sentinel provides complete coverage.</div>
+ <div><strong style="color: #10b981;">[Root Cause Correction]:</strong> Tier-2 classification: Discards 1 coincident scene, <strong>retains 52 valid Solo Landsat scenes</strong> under <strong>Tier-2</strong> (expanding valid records from 671 to 723) with precise geodetic dam cutoff.</div>
+ `;
+ } else {
+ card.innerHTML = `
+ <div style="margin-bottom: 6px;"><strong style="color: #38bdf8;">[Observed Signal]:</strong> On 2021-06-13 (monsoon flood season), Sentinel-2 MSI was obscured by 21.32% mountain cloud cover, causing optical area to artificially collapse to 3.24 km² (-87%). On the same day, Sentinel-1 SAR Orbit 135 penetrated clouds to recover 25.07 km².</div>
+ <div style="margin-bottom: 6px;"><strong style="color: #f87171;">[Flawed Assumption]:</strong> Relying solely on optical data introduces spurious negative spikes, misinterpreting cloud loss as reservoir drawdown during flood peaks.</div>
+ <div><strong style="color: #ec4899;">[Root Cause Correction]:</strong> Multi-Sensor Spatial Fusion activates Consensus Upper Envelope: SAR microwave recovers <strong>+21.83 km² (+673.8%)</strong> cloud-covered water, restoring true area of 25.10 km² and eliminating spurious fluctuations!</div>
+ `;
+ }
+ }
+ }
+
+ // Automatically initialize map with selected dam (URL parameter ?dam=...)
+ window.onload = function() {
+ renderDamSelector();
+ const urlParams = new URLSearchParams(window.location.search);
+ const targetDam = urlParams.get('dam') || 'yali_falls';
+ const selectedDam = (window.SURVEYOR_DATA && window.SURVEYOR_DATA[targetDam]) ? targetDam : ((window.SURVEYOR_DATA && Object.keys(window.SURVEYOR_DATA)[0]) || 'yali_falls');
+ switchDam(selectedDam);
+ };
+ </script>
+</body>
+</html>

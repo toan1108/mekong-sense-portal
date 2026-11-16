@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mekong Sense Data Portal — Scientific Methodology</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- KaTeX CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #080c16;
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+
+        .blueprint-grid {
+            background-color: #080c16;
+            background-image:
+                linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+                linear-gradient(rgba(56, 189, 248, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56, 189, 248, 0.015) 1px, transparent 1px);
+            background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px;
+            background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+        }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.7); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="blueprint-grid flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="h-14 bg-slate-900/90 border-b border-slate-800 px-6 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded bg-sky-500/20 border border-sky-400 flex items-center justify-center font-bold text-sky-400 text-sm tracking-wider">
+                SIW
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="font-bold text-slate-100 text-sm tracking-wide">Mekong Sense DATA PORTAL</span>
+                <span class="text-slate-500">|</span>
+                <span class="text-xs text-sky-400 font-mono font-medium">Scientific Methodology</span>
+            </div>
+        </div>
+        <div>
+            <a href="index.html" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-sky-400 hover:text-sky-300 text-xs font-medium transition flex items-center space-x-1.5">
+                <span>&larr; Back to Data Portal</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-6 md:p-8 space-y-8">
+
+        <!-- Executive Summary Section -->
+        <section class="bg-slate-900/80 border border-slate-800 rounded-xl p-6 shadow-xl backdrop-blur">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs font-mono font-bold uppercase text-sky-400 tracking-wider">Architecture</span>
+                    <span class="text-slate-500">|</span>
+                    <h1 class="text-base font-semibold text-white">Automated Hydro-Remote Sensing Pipeline</h1>
+                </div>
+                <span class="text-[11px] bg-sky-950 text-sky-400 border border-sky-800 px-2 py-0.5 rounded font-mono">
+                    Profile-Driven Engine
+                </span>
+            </div>
+            <p class="text-sm text-slate-300 leading-relaxed">
+                The Mekong Sense Data Portal operates a 4-step physics-anchored pipeline that reconstructs continuous, geodetically consistent hydraulic time series (H, A, V, Q<sub>in</sub>, Q<sub>out</sub>) for Mekong basin reservoirs. The computational engine adheres strictly to physical conservation laws and profiles without hardcoded assumptions.
+            </p>
+        </section>
+
+        <!-- 4-Step Methodology Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            <!-- Step 01 -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-2 mb-3">
+                        <span class="px-2 py-0.5 rounded bg-sky-950 text-sky-400 border border-sky-800 text-xs font-mono font-bold">01</span>
+                        <h2 class="text-sm font-bold text-sky-400">Multi-Sensor Earth Observation</h2>
+                    </div>
+                    <ul class="space-y-2.5 text-sm text-slate-300 leading-relaxed">
+                        <li class="flex items-start space-x-2">
+                            <span class="text-sky-400 mt-0.5">&#9642;</span>
+                            <div>
+                                <strong class="text-white">Optical Imagery (Sentinel-2, Landsat):</strong>
+                                <span class="text-slate-300"> Modified Normalized Difference Water Index (MNDWI) combined with Otsu adaptive thresholding to extract observed water surface area A<sub>obs</sub>.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <span class="text-sky-400 mt-0.5">&#9642;</span>
+                            <div>
+                                <strong class="text-white">Synthetic Aperture Radar (Sentinel-1):</strong>
+                                <span class="text-slate-300"> Height Above Nearest Drainage (HAND) mountain shadow suppression and Dempster-Shafer evidential fusion for cloud-penetrating water delineation.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <span class="text-sky-400 mt-0.5">&#9642;</span>
+                            <div>
+                                <strong class="text-white">Satellite Altimetry (SWOT, ICESat-2):</strong>
+                                <span class="text-slate-300"> Geoid-referenced water surface elevation H<sub>alt</sub> validated with 3-tier filtering (Point-in-Polygon, Crest bounds, and Area-Elevation bounds).</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-800 text-xs font-mono text-slate-400 flex justify-between">
+                    <span>Input: S1, S2, Landsat, SWOT</span>
+                    <span class="text-sky-400">Yield: A<sub>obs</sub>(t), H<sub>alt</sub>(t)</span>
+                </div>
+            </div>
+
+            <!-- Step 02 -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-2 mb-3">
+                        <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 text-xs font-mono font-bold">02</span>
+                        <h2 class="text-sm font-bold text-emerald-400">Geodetic Bathymetry &amp; Invariants</h2>
+                    </div>
+                    <ul class="space-y-2.5 text-sm text-slate-300 leading-relaxed">
+                        <li class="flex items-start space-x-2">
+                            <span class="text-emerald-400 mt-0.5">&#9642;</span>
+                            <div>
+                                <strong class="text-white">Differential Geodetic Identity:</strong>
+                                <span class="text-slate-300"> Enforces physical conservation identity dV/dE &equiv; A<sub>phys</sub>(E) everywhere along the bathymetric curve.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <span class="text-emerald-400 mt-0.5">&#9642;</span>
+                            <div>
+                                <strong class="text-white">Shape-Preserving Spline:</strong>
+                                <span class="text-slate-300"> Monotonic Piecewise Cubic Hermite Interpolating Polynomial (PCHIP) eliminates unphysical overshoot and ensures positive curvature.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <span class="text-emerald-400 mt-0.5">&#9642;</span>
+                            <div>
+                                <strong class="text-white">Strict Operational Bounds:</strong>
+                                <span class="text-slate-300"> Enforces physical bounding: Dead Water Level (DWL) &le; H(t) &le; Normal Pool Level (NPL) &le; Dam Crest.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-800 text-xs font-mono text-slate-400 flex justify-between">
+                    <span>Invariants: dV/dE &equiv; A(E)</span>
+                    <span class="text-emerald-400">Zero Inversion Mismatch</span>
+                </div>
+            </div>
+
+            <!-- Step 03 -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-2 mb-3">
+                        <span class="px-2 py-0.5 rounded bg-yellow-950 text-yellow-400 border border-yellow-800 text-xs font-mono font-bold">03</span>
+                        <h2 class="text-sm font-bold text-yellow-400">Catchment Hydrology &amp; Routing</h2>
+                    </div>
+                    <ul class="space-y-2.5 text-sm text-slate-300 leading-relaxed">
+                        <li class="flex items-start space-x-2">
+                            <span class="text-yellow-400 mt-0.5">&#9642;</span>
+                            <div>
+                                <strong class="text-white">Rainfall-Runoff Forcing:</strong>
+                                <span class="text-slate-300"> Basin-wide precipitation forcing from GPM IMERG and ERA5-Land reanalysis calibrated with WMO ground station benchmarks.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <span class="text-yellow-400 mt-0.5">&#9642;</span>
+                            <div>
+                                <strong class="text-white">Hydrodynamic Cascade Delay:</strong>
+                                <span class="text-slate-300"> Incorporates celerity-based routing travel time &tau; = L / v between cascaded reservoirs on the Lancang mainstem.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <span class="text-yellow-400 mt-0.5">&#9642;</span>
+                            <div>
+                                <strong class="text-white">Inflow Prior Estimation:</strong>
+                                <span class="text-slate-300"> Yields continuous daily upstream discharge Q<sub>in</sub>(t) accounting for upstream releases and lateral incremental inflows.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-800 text-xs font-mono text-slate-400 flex justify-between">
+                    <span>Drivers: ERA5-Land, GPM, Routing</span>
+                    <span class="text-yellow-400">Yield: Q<sub>in</sub>(t)</span>
+                </div>
+            </div>
+
+            <!-- Step 04 -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-2 mb-3">
+                        <span class="px-2 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800 text-xs font-mono font-bold">04</span>
+                        <h2 class="text-sm font-bold text-indigo-400">Mass Conservation &amp; Outflow</h2>
+                    </div>
+                    <div class="p-2.5 bg-slate-950 border border-slate-800 rounded font-mono text-xs text-sky-300 text-center my-2 font-semibold tracking-wide">
+                        dS/dt = Q<sub>in</sub>(t) - Q<sub>out</sub>(t) + P(t) - ET(t) - Q<sub>loss</sub>
+                    </div>
+                    <ul class="space-y-2.5 text-sm text-slate-300 leading-relaxed">
+                        <li class="flex items-start space-x-2">
+                            <span class="text-indigo-400 mt-0.5">&#9642;</span>
+                            <div>
+                                <strong class="text-white">Strict Residual Outflow Solver:</strong>
+                                <span class="text-slate-300"> Evaluates daily reservoir volume change rate dS/dt = dV/dt to solve for actual discharge Q<sup>*</sup><sub>out</sub>(t).</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <span class="text-indigo-400 mt-0.5">&#9642;</span>
+                            <div>
+                                <strong class="text-white">Physical Hydraulic Clamping:</strong>
+                                <span class="text-slate-300"> Restricts outflow to realistic turbine and spillway capacities: 0 &le; Q<sub>out</sub>(t) &le; Q<sub>capacity</sub>, precluding negative fluxes.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start space-x-2">
+                            <span class="text-indigo-400 mt-0.5">&#9642;</span>
+                            <div>
+                                <strong class="text-white">Zero Residual Verification:</strong>
+                                <span class="text-slate-300"> Verifies continuous daily mass balance with near-zero unaccounted residual across the full multi-year record.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-800 text-xs font-mono text-slate-400 flex justify-between">
+                    <span>Constraint: 0 &le; Q<sub>out</sub> &le; Q<sub>cap</sub></span>
+                    <span class="text-indigo-400">Yield: Q<sup>*</sup><sub>out</sub>(t), &Delta;S(t)</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Invariant Verification Protocol Table -->
+        <section class="bg-slate-900/80 border border-slate-800 rounded-xl p-6 shadow-xl backdrop-blur">
+            <div class="flex items-center space-x-2 mb-4">
+                <span class="text-xs font-mono font-bold uppercase text-emerald-400 tracking-wider">Quality Gates</span>
+                <span class="text-slate-500">|</span>
+                <h2 class="text-sm font-semibold text-white">Physical Invariant Verification Gates</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left text-slate-300 border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-[11px] text-slate-400 font-mono uppercase bg-slate-950/60">
+                            <th class="py-2.5 px-3">Gate ID</th>
+                            <th class="py-2.5 px-3">Invariant Property</th>
+                            <th class="py-2.5 px-3">Mathematical Condition</th>
+                            <th class="py-2.5 px-3">Enforcement Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800 font-mono text-xs">
+                        <tr>
+                            <td class="py-2.5 px-3 text-sky-400 font-bold">QT1</td>
+                            <td class="py-2.5 px-3 font-sans text-slate-200">Full Timeline Continuity</td>
+                            <td class="py-2.5 px-3 text-slate-400">Continuous daily date sequence without selective sampling</td>
+                            <td class="py-2.5 px-3 text-rose-400">Hard Stop</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2.5 px-3 text-sky-400 font-bold">QT2</td>
+                            <td class="py-2.5 px-3 font-sans text-slate-200">Differential Bathymetry Identity</td>
+                            <td class="py-2.5 px-3 text-slate-400">dV/dE &equiv; A<sub>phys</sub>(E) across operational range</td>
+                            <td class="py-2.5 px-3 text-rose-400">Hard Stop</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2.5 px-3 text-sky-400 font-bold">QT3</td>
+                            <td class="py-2.5 px-3 font-sans text-slate-200">Hydraulic Non-Negativity</td>
+                            <td class="py-2.5 px-3 text-slate-400">Q<sub>in</sub> &ge; 0, &nbsp; Q<sub>out</sub> &ge; 0</td>
+                            <td class="py-2.5 px-3 text-rose-400">Clamping &amp; Audit</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2.5 px-3 text-sky-400 font-bold">QT4</td>
+                            <td class="py-2.5 px-3 font-sans text-slate-200">Physical Storage Envelope</td>
+                            <td class="py-2.5 px-3 text-slate-400">V<sub>dead</sub> &le; V(t) &le; V<sub>max</sub></td>
+                            <td class="py-2.5 px-3 text-rose-400">Hard Stop</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="p-4 border-t border-slate-800 text-center text-xs text-slate-500 font-mono bg-slate-950/60">
+        Mekong Sense Open Hydrology Data Portal &middot; Southern Institute of Water Resources Research
+    </footer>
+
+</body>
+</html>

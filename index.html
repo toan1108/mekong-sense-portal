@@ -1,0 +1,1899 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" class="js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MekongSense — Transboundary Basin Earth Observation &amp; Hydrometric Portal</title>
+  <meta name="description" content="Spaceborne radar altimetry, SAR flood inundation, and mainstem gauge telemetry across the 4,350 km Lancang–Mekong River Basin.">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Data Stores -->
+  <script src="portal_branches_registry.js"></script>
+  <script src="portal_real_data.js"></script>
+  <script src="portal_precip_store.js"></script>
+  <script src="portal_tonlesap_store.js"></script>
+
+  <style>
+    :root {
+      /* MekongSense Official Measured Palette */
+      --brand-navy: #18283F;
+      --brand-sky: #06A9F2;
+      --brand-river: #05598E;
+      --brand-emerald: #28C58C;
+      --brand-slate: #5A626C;
+
+      /* Dark Theme (Telemetry Cockpit) */
+      --bg-base: #060A10;
+      --bg-surface: #0E1624;
+      --bg-surface-elevated: #152236;
+      --bg-nav: #060A10;
+
+      --text-main: #F4F7FB;
+      --text-muted: #A8B8CD;
+      --text-dim: #7C8BA1;
+
+      --accent-primary: #06A9F2;
+      --accent-hover: #38BAF5;
+      --accent-pulse: #28C58C;
+      --btn-text: #060A10;
+
+      --font-family: 'Work Sans', system-ui, -apple-system, sans-serif;
+
+      /* Standard 5 Font Size Steps */
+      --step-display: clamp(2.1rem, 3.3vw, 3.2rem);
+      --step-h2: clamp(1.8rem, 2.6vw, 2.6rem);
+      --step-lead: 20px;
+      --step-body: 16px;
+      --step-small: 14px;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --page-padding: clamp(1.5rem, 4vw, 3.5rem);
+      --border-hairline: rgba(255, 255, 255, 0.08);
+
+      /* Motion Tokens */
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --t-press: 140ms;
+      --t-hover: 180ms;
+    }
+
+    [data-theme="light"] {
+      /* Light Theme (Scientific Editorial Atlas) */
+      --bg-base: #F8FAFC;
+      --bg-surface: #FFFFFF;
+      --bg-surface-elevated: #EDF2F7;
+      --bg-nav: #F8FAFC;
+
+      --text-main: #0F172A;
+      --text-muted: #334155;
+      --text-dim: #64748B;
+
+      --accent-primary: #05598E;
+      --accent-hover: #034066;
+      --accent-pulse: #047857;
+      --btn-text: #FFFFFF;
+      --border-hairline: #CBD5E1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Themed Browser Surfaces */
+    ::selection {
+      background: rgba(6, 169, 242, 0.32);
+      color: var(--text-main);
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent-primary);
+      outline-offset: 2px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-surface-elevated);
+      border-radius: 4px;
+      border: 2px solid var(--bg-base);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-primary);
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      font-size: var(--step-body);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+    }
+
+    /* Fixed Navigation Bar */
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      padding: 0 var(--page-padding);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-nav);
+      z-index: 1000;
+      transition: background 0.25s ease;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-logo-img {
+      height: 34px;
+      width: auto;
+      display: block;
+      object-fit: contain;
+    }
+
+    [data-theme="dark"] .logo-light-variant { display: none; }
+    [data-theme="dark"] .logo-dark-variant { display: block; }
+    [data-theme="light"] .logo-dark-variant { display: none; }
+    [data-theme="light"] .logo-light-variant { display: block; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .nav-item {
+      font-size: var(--step-body);
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.2s ease;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      color: var(--text-main);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .theme-toggle-btn {
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      border: none;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: var(--step-small);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      background: var(--bg-surface);
+    }
+
+    .theme-toggle-btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-launchpad {
+      background: var(--accent-primary);
+      color: var(--btn-text);
+      padding: 10px 22px;
+      border-radius: var(--radius-sm);
+      font-size: var(--step-body);
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform var(--t-press) var(--ease-out), background 0.15s ease;
+      border: none;
+    }
+
+    .btn-launchpad:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-launchpad:active {
+      transform: scale(0.97);
+    }
+
+    /* Hero Section: Split Stage */
+    .hero-section {
+      min-height: 100vh;
+      padding-top: 104px;
+      padding-bottom: 72px;
+      padding-left: var(--page-padding);
+      padding-right: var(--page-padding);
+      display: grid;
+      grid-template-columns: 0.95fr 1.25fr;
+      align-items: center;
+      gap: 44px;
+      position: relative;
+    }
+
+    .hero-title {
+      font-family: var(--font-family);
+      font-size: var(--step-display);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      color: var(--text-main);
+      margin-bottom: 24px;
+      max-width: 650px;
+      text-wrap: balance;
+    }
+
+    .hero-tagline {
+      font-size: var(--step-lead);
+      font-weight: 400;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 62ch;
+      margin-bottom: 36px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    /* Telemetry Readout Strip */
+    .hero-telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      padding-top: 28px;
+    }
+
+    .telemetry-cell {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cell-label {
+      font-size: var(--step-small);
+      font-weight: 500;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+      white-space: nowrap;
+    }
+
+    .cell-value {
+      font-size: var(--step-lead);
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .cell-unit {
+      font-size: var(--step-small);
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    /* Hero Visual Stage with Video / Photo Stack */
+    .hero-stage {
+      position: relative;
+      width: 100%;
+      height: clamp(540px, 80vh, 720px);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      background: #030712;
+      isolation: isolate;
+    }
+
+    .hero-stage-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Embedded 3D globe (WebGL) */
+    .globe-poster {
+      position: absolute;
+      inset: 0;
+      transition: opacity 0.9s var(--ease-out);
+    }
+
+    .globe-mount {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.9s var(--ease-out);
+      cursor: grab;
+    }
+
+    .globe-mount:active { cursor: grabbing; }
+    .globe-mount canvas { display: block; width: 100%; height: 100%; }
+    .globe-ready .globe-mount { opacity: 1; }
+    .globe-ready .globe-poster { opacity: 0; }
+
+    .globe-hud {
+      position: absolute;
+      z-index: 3;
+      color: #F4F7FB;
+      pointer-events: none;
+    }
+
+    .globe-hud > * { pointer-events: auto; }
+
+    .globe-glass {
+      background: rgba(6, 12, 22, 0.76);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: var(--radius-md);
+    }
+
+    .globe-top {
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .globe-status {
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+      line-height: 1.35;
+      font-variant-numeric: tabular-nums;
+      max-width: 290px;
+      border-radius: 8px;
+      transition: all 0.25s var(--ease-out);
+    }
+
+    .globe-status-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 0;
+      color: #CBD5E1;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      line-height: 1.2;
+      user-select: none;
+    }
+    .globe-status-header:hover {
+      color: #FFFFFF;
+    }
+    .globe-status-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.02em;
+    }
+    .globe-chevron {
+      transition: transform 0.25s ease;
+      color: #94A3B8;
+      flex-shrink: 0;
+    }
+    .globe-status-header:hover .globe-chevron {
+      color: #FFFFFF;
+    }
+    .globe-status.is-collapsed .globe-chevron {
+      transform: rotate(-90deg);
+    }
+    .globe-status-body {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-top: 6px;
+      transition: opacity 0.2s ease, max-height 0.25s ease;
+    }
+    .globe-status.is-collapsed .globe-status-body {
+      display: none;
+    }
+
+    .globe-status-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #CBD5E1;
+      transition: color 0.2s ease;
+      font-size: 13px;
+    }
+
+    .globe-status-row.is-scanning { color: #FFFFFF; font-weight: 600; }
+
+    .globe-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .globe-status-row.is-scanning .globe-dot { animation: globePulse 1.2s ease-in-out infinite; }
+
+    @keyframes globePulse {
+      0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+      50% { box-shadow: 0 0 0 4px transparent; transform: scale(1.35); }
+    }
+
+    .globe-tools {
+      display: flex;
+      gap: 4px;
+    }
+
+    .globe-tool {
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #F4F7FB;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.15s ease, transform var(--t-press) var(--ease-out);
+    }
+
+    .globe-tool svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .globe-tool:hover { background: rgba(21, 34, 54, 0.92); }
+    .globe-tool:active { transform: scale(0.95); }
+
+    .globe-readout {
+      position: absolute;
+      z-index: 3;
+      top: 48px;
+      right: 12px;
+      width: 230px;
+      padding: 10px 12px;
+      color: #F4F7FB;
+      border-radius: 8px;
+      animation: globeIn 0.25s var(--ease-expo);
+    }
+
+    .globe-readout[hidden] { display: none; }
+
+    @keyframes globeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .gr-name { font-size: 14px; font-weight: 700; line-height: 1.25; }
+    .gr-region { font-size: 13px; color: #94A3B8; margin-bottom: 8px; }
+
+    .gr-rows {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 3px 8px;
+      font-size: 13px;
+    }
+
+    .gr-rows dt { color: #94A3B8; }
+    .gr-rows dd { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .gr-rows dd.gr-q { color: #38BAF5; }
+
+    .gr-source {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 13px;
+      color: #38BAF5;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .globe-label {
+      position: absolute;
+      z-index: 2;
+      top: 0;
+      left: 0;
+      margin: -36px 0 0 10px;
+      padding: 3px 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #04121F;
+      background: #28C58C;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .globe-label::after {
+      content: '';
+      position: absolute;
+      left: -10px;
+      bottom: -12px;
+      width: 12px;
+      height: 1px;
+      background: #28C58C;
+      transform: rotate(-45deg);
+      transform-origin: right;
+    }
+
+    .globe-bottom {
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .globe-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 5px 6px;
+      border-radius: 8px;
+    }
+
+    .globe-chip {
+      font-family: var(--font-family);
+      font-size: 13px;
+      font-weight: 500;
+      color: #CBD5E1;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, transform var(--t-press) var(--ease-out);
+      line-height: 1.2;
+    }
+
+    .globe-chip:hover { background: rgba(255, 255, 255, 0.08); color: #FFFFFF; }
+    .globe-chip:active { transform: scale(0.97); }
+
+    .globe-chip.is-active {
+      background: rgba(6, 169, 242, 0.18);
+      color: #38BAF5;
+      border: 1px solid rgba(6, 169, 242, 0.5);
+      font-weight: 600;
+    }
+
+    .globe-hint {
+      font-size: 13px;
+      color: #94A3B8;
+      text-align: right;
+      pointer-events: none;
+      padding-right: 4px;
+    }
+
+    [data-theme="light"] .hero-stage { box-shadow: 0 0 0 1px #CBD5E1; }
+
+    @media (max-width: 640px) {
+      .globe-status { max-width: none; }
+      .globe-status-row:nth-child(n+2) { display: none; }
+      .globe-readout { top: auto; bottom: 100px; left: 12px; right: 12px; width: auto; }
+      .globe-hint { display: none; }
+    }
+
+    p {
+      text-wrap: pretty;
+    }
+
+    /* SECTION 2: THE 4 BASIN STAGES */
+    .section-journey {
+      padding: 104px 48px;
+      padding: 104px var(--page-padding);
+      background: var(--bg-surface);
+    }
+
+    .section-header {
+      max-width: 780px;
+      margin-bottom: 56px;
+    }
+
+    .section-title {
+      font-family: var(--font-family);
+      font-size: var(--step-h2);
+      font-weight: 800;
+      line-height: 1.18;
+      letter-spacing: -0.025em;
+      color: var(--text-main);
+      margin-bottom: 18px;
+      text-wrap: balance;
+    }
+
+    .section-desc {
+      font-size: var(--step-body);
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 68ch;
+    }
+
+    /* Journey Deck */
+    .journey-deck {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 40px;
+      align-items: stretch;
+      padding: 0 16px;
+    }
+
+    .journey-nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .journey-card {
+      background: var(--bg-base);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .journey-card:hover {
+      transform: translateX(4px);
+    }
+
+    .journey-card.active {
+      background: var(--bg-surface-elevated);
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-chainage {
+      font-size: var(--step-small);
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+
+    .card-status {
+      font-size: var(--step-small);
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .card-name {
+      font-size: var(--step-lead);
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .card-summary {
+      font-size: var(--step-body);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Active Showcase Viewer */
+    .journey-display {
+      position: relative;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      background: #000;
+      min-height: 480px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .display-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      transition: opacity 0.3s ease;
+    }
+
+    .display-gradient-mask {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(6, 10, 16, 0.1) 0%, rgba(6, 10, 16, 0.94) 80%);
+      pointer-events: none;
+    }
+
+    .display-info {
+      position: relative;
+      z-index: 2;
+      padding: 36px;
+      color: #F4F7FB;
+    }
+
+    .display-title {
+      font-size: clamp(1.35rem, 2.2vw, 2.2rem);
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #FFFFFF;
+      text-wrap: balance;
+    }
+
+    .display-details {
+      font-size: var(--step-body);
+      line-height: 1.6;
+      color: #CBD5E1;
+      margin-bottom: 24px;
+      max-width: 580px;
+    }
+
+    .display-metrics-row {
+      display: flex;
+      gap: 36px;
+      padding-top: 20px;
+    }
+
+    .metric-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .m-title {
+      font-size: var(--step-small);
+      color: #94A3B8;
+      margin-bottom: 2px;
+    }
+
+    .m-val {
+      font-size: var(--step-lead);
+      font-weight: 700;
+      color: #38BAF5;
+    }
+
+    /* SECTION 3: LIVE OPERATIONAL INSTRUMENTS */
+    .section-instruments {
+      padding: 104px var(--page-padding);
+      background: var(--bg-base);
+    }
+
+    .instruments-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      margin-top: 48px;
+      align-items: start;
+    }
+
+    .instrument-card {
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-hairline);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .instrument-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(6, 169, 242, 0.4);
+    }
+
+    .instrument-banner {
+      height: 190px;
+      position: relative;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .banner-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.9;
+      transition: transform 0.4s ease;
+    }
+
+    .instrument-card:hover .banner-img {
+      transform: scale(1.03);
+      opacity: 1;
+    }
+
+    .banner-tag {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(6, 10, 16, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: var(--step-small);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--accent-primary);
+    }
+
+    .instrument-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .instrument-title {
+      font-size: var(--step-lead);
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      text-wrap: balance;
+    }
+
+    .instrument-desc {
+      font-size: var(--step-body);
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-bottom: 20px;
+      flex: 1;
+    }
+
+    .instrument-telemetry-row {
+      border-top: 1px solid var(--border-hairline);
+      padding-top: 14px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .readout-label {
+      font-size: var(--step-small);
+      color: var(--text-dim);
+    }
+
+    .readout-val {
+      font-size: var(--step-lead);
+      font-weight: 700;
+      color: var(--accent-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .instrument-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: var(--step-body);
+      font-weight: 600;
+      border: 1px solid var(--border-hairline);
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .instrument-cta:hover {
+      background: var(--accent-primary);
+      color: var(--btn-text);
+      border-color: var(--accent-primary);
+    }
+
+    /* SECTION 4: TABULAR BASIN LEDGER */
+    .section-ledger {
+      padding: 104px var(--page-padding);
+      background: var(--bg-surface);
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 36px;
+      border-radius: var(--radius-lg);
+      background: var(--bg-base);
+      border: 1px solid var(--border-hairline);
+      padding: 8px 12px;
+    }
+
+    table.ledger-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    table.ledger-table th {
+      padding: 18px 24px;
+      font-size: var(--step-small);
+      font-weight: 600;
+      color: var(--text-dim);
+      background: var(--bg-surface-elevated);
+    }
+
+    table.ledger-table th.num-col,
+    table.ledger-table td.num-col {
+      text-align: right;
+    }
+
+    table.ledger-table td {
+      padding: 18px 24px;
+      font-size: var(--step-body);
+      color: var(--text-main);
+    }
+
+    table.ledger-table tr:hover td {
+      background: var(--bg-surface-elevated);
+    }
+
+    .tag-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: var(--step-small);
+      font-weight: 500;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .tag-status.active {
+      color: #28C58C;
+    }
+
+    .tag-status.active::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #28C58C;
+      display: inline-block;
+    }
+
+    [data-theme="light"] .tag-status.active {
+      color: #047857;
+    }
+
+    [data-theme="light"] .tag-status.active::before {
+      background: #047857;
+    }
+
+    /* Branches in preparation */
+    .upcoming-grid {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0 32px;
+      margin-top: 56px;
+    }
+
+    .upcoming-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 18px 0 22px;
+      border-top: 1px solid var(--border-hairline);
+    }
+
+    .upcoming-code {
+      font-size: var(--step-small);
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+
+    .upcoming-name {
+      font-size: var(--step-body);
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .upcoming-desc {
+      font-size: var(--step-small);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .upcoming-flag {
+      margin-top: 6px;
+      font-size: var(--step-small);
+      color: var(--text-dim);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .upcoming-flag::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      border: 1px solid var(--text-dim);
+    }
+
+    @media (max-width: 1100px) {
+      .upcoming-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .upcoming-grid { grid-template-columns: 1fr; }
+    }
+
+    /* SECTION 5: CALL TO ACTION */
+    .section-cta {
+      padding: 120px 48px;
+      padding: 120px var(--page-padding);
+      text-align: center;
+      background: var(--bg-surface-elevated);
+    }
+
+    .cta-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    .cta-title {
+      font-family: var(--font-family);
+      font-size: var(--step-h2);
+      font-weight: 800;
+      line-height: 1.18;
+      letter-spacing: -0.025em;
+      color: var(--text-main);
+      margin-bottom: 20px;
+      text-wrap: balance;
+    }
+
+    .cta-desc {
+      font-size: var(--step-body);
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+
+    footer.site-footer {
+      padding: 56px var(--page-padding);
+      background: var(--bg-base);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .footer-credits {
+      font-size: var(--step-small);
+      color: var(--text-dim);
+      line-height: 1.6;
+      max-width: 68ch;
+    }
+
+    .footer-credits a {
+      color: var(--accent-primary);
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .top-nav {
+        height: 64px;
+        padding: 0 var(--page-padding);
+      }
+      .nav-links {
+        display: none;
+      }
+      .hero-section {
+        grid-template-columns: 1fr;
+        padding-top: 84px;
+        gap: 36px;
+      }
+      .journey-deck {
+        grid-template-columns: 1fr;
+      }
+      .instruments-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .top-nav {
+        height: 56px;
+        padding: 0 16px;
+      }
+      .brand-logo-img {
+        height: 24px;
+      }
+      .nav-actions {
+        gap: 8px;
+      }
+      .theme-toggle-btn {
+        padding: 6px 10px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      .btn-launchpad {
+        padding: 6px 12px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      .hero-telemetry-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .display-info {
+        padding: 24px 18px;
+      }
+      .display-title {
+        font-size: 21px;
+      }
+      .display-metrics-row {
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="top-nav" aria-label="MekongSense Global Navigation">
+    <div class="brand-group">
+      <a href="index.html" aria-label="MekongSense Home">
+        <img class="brand-logo-img logo-dark-variant" src="assets/branding_mekongsense/mekongsense_logo_horizontal_dark.png" alt="MekongSense — Earth Observatory Logo">
+        <img class="brand-logo-img logo-light-variant" src="assets/branding_mekongsense/mekongsense_logo_horizontal_light.png" alt="MekongSense — Earth Observatory Logo">
+      </a>
+    </div>
+
+    <div class="nav-links">
+      <a href="#journey" class="nav-item">River reaches</a>
+      <a href="#instruments" class="nav-item">Workbenches</a>
+      <a href="#ledger" class="nav-item">Stations</a>
+    </div>
+
+    <div class="nav-actions">
+      <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle color theme">
+        <span id="theme-btn-label">Light Mode</span>
+      </button>
+
+      <a href="portal_multiwindow_terminal.html" class="btn-launchpad">
+        <span>Open workbench</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero-section" id="hero">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Mekong from space
+      </h1>
+
+      <p class="hero-tagline">
+        One river, 4,350 km, from the Lancang gorges to the delta. Satellite altimetry, radar and gauge records, closed in a single water balance.
+      </p>
+
+      <div class="hero-actions">
+        <a href="portal_multiwindow_terminal.html" class="btn-launchpad">
+          <span>Open workbench</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- Real Telemetry Readout Strip -->
+      <div class="hero-telemetry-grid">
+        <div class="telemetry-cell">
+          <span class="cell-label">Kratie discharge</span>
+          <div class="cell-value num" id="hero-total-q">14,820 <span class="cell-unit">m³/s</span></div>
+        </div>
+        <div class="telemetry-cell">
+          <span class="cell-label">Tonle Sap storage</span>
+          <div class="cell-value num" id="hero-tonlesap-v">58.82 <span class="cell-unit">km³</span></div>
+        </div>
+        <div class="telemetry-cell">
+          <span class="cell-label">Satellite missions</span>
+          <div class="cell-value num">5 <span class="cell-unit">in orbit view</span></div>
+        </div>
+      </div>
+
+      <div class="hero-epoch-stamp" id="hero-epoch-stamp" style="margin-top: 14px; font-size: 12.5px; color: var(--text-dim); display: flex; align-items: center; gap: 8px;">
+        <span class="globe-dot" style="background: #28C58C; width: 6px; height: 6px; border-radius: 50%;"></span>
+        <span>Data through Oct 2026 · Branches B01, B02, B03</span>
+      </div>
+    </div>
+
+    <!-- Right Side Hero Visual Stage: embedded live 3D globe -->
+    <div class="hero-stage" id="globe-stage">
+      <img class="hero-stage-img globe-poster" src="assets/branding_mekongsense/mekongsense_hero_orbital.jpg" alt="Orbital overview of the 4,350 km Lancang-Mekong Basin from the Tibetan Plateau to the East Sea">
+      <div class="globe-mount" id="globe-mount" role="img" aria-label="Interactive 3D WGS84 globe: 4,350 km Lancang-Mekong mainstem, real-time solar ephemeris terminator, and Keplerian orbits for SWOT, Sentinel-1, ICESat-2, Sentinel-2, and Landsat-9"></div>
+      <div class="globe-label" id="globe-label" aria-hidden="true"></div>
+
+      <div class="globe-hud globe-top">
+        <div class="globe-glass globe-status" id="globe-status-card" aria-live="polite">
+          <button type="button" class="globe-status-header" id="globe-status-toggle" aria-expanded="true" aria-controls="globe-status-body">
+            <span class="globe-status-title">Five satellites</span>
+            <svg class="globe-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="globe-status-body" id="globe-status-body">
+            <div class="globe-status-row"><span class="globe-dot" style="background:#38BAF5; color:#38BAF5;"></span><span id="globe-sat-swot">SWOT · computing ephemeris</span></div>
+            <div class="globe-status-row"><span class="globe-dot" style="background:#F5A524; color:#F5A524;"></span><span id="globe-sat-s1">Sentinel-1 · computing ephemeris</span></div>
+            <div class="globe-status-row"><span class="globe-dot" style="background:#10B981; color:#10B981;"></span><span id="globe-sat-icesat2">ICESat-2 · computing ephemeris</span></div>
+            <div class="globe-status-row"><span class="globe-dot" style="background:#06B6D4; color:#06B6D4;"></span><span id="globe-sat-s2">Sentinel-2 · computing ephemeris</span></div>
+            <div class="globe-status-row"><span class="globe-dot" style="background:#F43F5E; color:#F43F5E;"></span><span id="globe-sat-landsat">Landsat-9 · computing ephemeris</span></div>
+            <div class="globe-status-row"><span class="globe-dot" style="background:#F4F7FB;"></span><span id="globe-clock">Solar Ephemeris</span></div>
+            <div class="globe-status-row" id="globe-lod-row" style="display:none;"><span class="globe-dot" style="background:#10B981; color:#10B981;"></span><span id="globe-lod-text">Cascade LOD · Dam Telemetry Active</span></div>
+          </div>
+        </div>
+        <div class="globe-tools">
+          <button type="button" class="globe-glass globe-tool" id="globe-zoom-out" aria-label="Zoom out globe">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>
+          </button>
+          <button type="button" class="globe-glass globe-tool" id="globe-zoom-in" aria-label="Zoom in globe">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="globe-glass globe-readout" id="globe-readout" hidden>
+        <div class="gr-name" data-f="name"></div>
+        <div class="gr-region" data-f="region"></div>
+        <dl class="gr-rows">
+          <dt>River km</dt><dd data-f="km"></dd>
+          <dt>Water level Z</dt><dd data-f="z"></dd>
+          <dt>Discharge Q</dt><dd class="gr-q" data-f="q"></dd>
+          <dt>Sensor</dt><dd data-f="sat"></dd>
+        </dl>
+        <a class="gr-source" href="#ledger">Open in station table</a>
+      </div>
+
+      <div class="globe-hud globe-bottom">
+        <div class="globe-glass globe-chips" id="globe-chips" aria-label="Fly to mainstem reference station"></div>
+        <div class="globe-hint">Drag to rotate · orbits at ×150 speed</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section 2: Interactive Longitudinal Hydraulic Regimes -->
+  <section class="section-journey" id="journey">
+    <div class="section-header">
+      <h2 class="section-title">Four reaches, four regimes</h2>
+      <p class="section-desc">
+        Over 4,350 km the Mekong changes character four times: regulated gorge, free-flowing valley, flood-pulse lake and tidal delta.
+      </p>
+    </div>
+
+    <div class="journey-deck">
+      <!-- Left side Navigation Cards -->
+      <div class="journey-nav-list" role="tablist">
+
+        <div class="journey-card active" onclick="switchStage(0)" role="tab" id="stage-tab-0">
+          <div class="card-meta">
+            <span class="card-chainage num">KM 0 – KM 2,161</span>
+            <span class="card-status">Regulated gorge</span>
+          </div>
+          <div class="card-name">Lancang cascade</div>
+          <div class="card-summary">Reservoirs in series across Yunnan. Xiaowan (292 m) and Nuozhadu (261.5 m) hold back wet-season flow and release it in the dry season.</div>
+        </div>
+
+        <div class="journey-card" onclick="switchStage(1)" role="tab" id="stage-tab-1">
+          <div class="card-meta">
+            <span class="card-chainage num">KM 2,161 – KM 3,120</span>
+            <span class="card-status">Free-flowing valley</span>
+          </div>
+          <div class="card-name">Lao mainstem</div>
+          <div class="card-summary">Bedrock gorges alternate with alluvial plains past Luang Prabang and Vientiane. Tributaries such as the Nam Ou and Nam Ngum add monsoon runoff.</div>
+        </div>
+
+        <div class="journey-card" onclick="switchStage(2)" role="tab" id="stage-tab-2">
+          <div class="card-meta">
+            <span class="card-chainage num">KM 3,120 – KM 3,900</span>
+            <span class="card-status">Flood-pulse lake</span>
+          </div>
+          <div class="card-name">Tonle Sap reversal</div>
+          <div class="card-summary">In the flood season the Mekong pushes water up the Tonle Sap River into the Great Lake (Biển Hồ). In the dry season the flow reverses.</div>
+        </div>
+
+        <div class="journey-card" onclick="switchStage(3)" role="tab" id="stage-tab-3">
+          <div class="card-meta">
+            <span class="card-chainage num">KM 3,900 – KM 4,350</span>
+            <span class="card-status">Tidal delta</span>
+          </div>
+          <div class="card-name">Mekong Delta</div>
+          <div class="card-summary">At Tan Chau and Chau Doc the river splits into the Tien and Bassac (Hau) channels and reaches the sea through nine mouths. Tides set the water level.</div>
+        </div>
+
+      </div>
+
+      <!-- Right side Dynamic Stage Display -->
+      <div class="journey-display">
+        <img class="display-img" id="stage-main-img" src="assets/branding_mekongsense/mekongsense_lancang_dam.jpg" alt="Aerial view of Xiaowan Dam arch and reservoir in the Lancang gorge">
+        <div class="display-gradient-mask"></div>
+
+        <div class="display-info">
+          <h3 class="display-title" id="stage-display-title">Lancang cascade</h3>
+          <p class="display-details" id="stage-display-desc">
+            Xiaowan (292 m arch dam) and Nuozhadu (261.5 m embankment dam) turn a flashy monsoon hydrograph into a steadier one.
+          </p>
+
+          <div class="display-metrics-row">
+            <div class="metric-item">
+              <span class="m-title" id="stage-l1">Jinghong level (Z)</span>
+              <span class="m-val num" id="stage-m1">599.25 m</span>
+            </div>
+            <div class="metric-item">
+              <span class="m-title" id="stage-l2">Nuozhadu level (Z)</span>
+              <span class="m-val num" id="stage-m2">798.42 m</span>
+            </div>
+            <div class="metric-item">
+              <span class="m-title" id="stage-l3">Nuozhadu outflow (Q)</span>
+              <span class="m-val num" id="stage-m3">1,313 m³/s</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Live Operational Instruments -->
+  <section class="section-instruments" id="instruments">
+    <div class="section-header">
+      <h2 class="section-title">Thirteen data branches</h2>
+      <p class="section-desc">
+        Three branches are open now, each with its own workspace on verified data. Ten more are in preparation.
+      </p>
+    </div>
+
+    <div class="instruments-grid">
+
+      <div class="instrument-card">
+        <div class="instrument-banner">
+          <img class="banner-img" src="assets/branding_mekongsense/workbench_cascade_preview.jpg" alt="Reservoir workbench: level, storage and outflow time series">
+          <div class="banner-tag">B01 · Reservoirs</div>
+        </div>
+        <div class="instrument-body">
+          <h3 class="instrument-title">Reservoirs and dams</h3>
+          <p class="instrument-desc">
+            Water level (stage, Z), storage (volume, V) and outflow (discharge, Q) for three verified dams: Jinghong, Nuozhadu and Ialy.
+          </p>
+          <div class="instrument-telemetry-row">
+            <span class="readout-label" id="b01-live-label">Jinghong · latest</span>
+            <span class="readout-val num" id="b01-live-val">Q 1,943 m³/s · Z 599.25 m</span>
+          </div>
+          <a href="portal_multiwindow_terminal.html#b01" class="instrument-cta">
+            <span>Open B01</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="instrument-card">
+        <div class="instrument-banner">
+          <img class="banner-img" src="assets/branding_mekongsense/workbench_precip_preview.jpg" alt="Calibrated precipitation workbench: 16 basins hyetograph and bias correction">
+          <div class="banner-tag">B02 · Rainfall</div>
+        </div>
+        <div class="instrument-body">
+          <h3 class="instrument-title">Calibrated rainfall</h3>
+          <p class="instrument-desc">
+            Satellite rainfall (GPM IMERG, CHIRPS, GSMaP, ERA5-Land) bias-corrected against rain gauges for the Sê San and Srepok basins.
+          </p>
+          <div class="instrument-telemetry-row">
+            <span class="readout-label" id="b02-live-label">Certified catchment area</span>
+            <span class="readout-val num" id="b02-live-val">49,830 km²</span>
+          </div>
+          <a href="portal_multiwindow_terminal.html#b02" class="instrument-cta">
+            <span>Open B02</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="instrument-card">
+        <div class="instrument-banner">
+          <img class="banner-img" src="assets/branding_mekongsense/workbench_tonlesap_preview.jpg" alt="Tonle Sap dynamics workbench: lake level, volume and reverse flow">
+          <div class="banner-tag">B03 · Tonle Sap</div>
+        </div>
+        <div class="instrument-body">
+          <h3 class="instrument-title">Tonle Sap lake and reversal</h3>
+          <p class="instrument-desc">
+            Lake level (stage, WSE), storage and exchange flow at Chaktomuk, from SWOT, ICESat-2 and Sentinel-1.
+          </p>
+          <div class="instrument-telemetry-row">
+            <span class="readout-label" id="b03-live-label">Storage · exchange flow</span>
+            <span class="readout-val num" id="b03-live-val">V 58.82 km³ · Q 7,033 m³/s</span>
+          </div>
+          <a href="portal_multiwindow_terminal.html#b03" class="instrument-cta">
+            <span>Open B03</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <ul class="upcoming-grid" aria-label="Branches in preparation">
+        <li class="upcoming-item">
+          <span class="upcoming-code num">B04</span>
+          <span class="upcoming-name">Irrigation schemes</span>
+          <span class="upcoming-desc">Upstream irrigation commands and crop water demand.</span>
+          <span class="upcoming-flag">Coming soon</span>
+        </li>
+        <li class="upcoming-item">
+          <span class="upcoming-code num">B05</span>
+          <span class="upcoming-name">Rice phenology</span>
+          <span class="upcoming-desc">Sowing, flooding and heading of delta rice crops.</span>
+          <span class="upcoming-flag">Coming soon</span>
+        </li>
+        <li class="upcoming-item">
+          <span class="upcoming-code num">B06</span>
+          <span class="upcoming-name">Land subsidence (InSAR)</span>
+          <span class="upcoming-desc">Delta ground motion in mm per year.</span>
+          <span class="upcoming-flag">Coming soon</span>
+        </li>
+        <li class="upcoming-item">
+          <span class="upcoming-code num">B07</span>
+          <span class="upcoming-name">Land cover (LULC)</span>
+          <span class="upcoming-desc">Land-use change, aquaculture and mangroves.</span>
+          <span class="upcoming-flag">Coming soon</span>
+        </li>
+        <li class="upcoming-item">
+          <span class="upcoming-code num">B08</span>
+          <span class="upcoming-name">Flood inundation</span>
+          <span class="upcoming-desc">Flood extent and depth in near real time.</span>
+          <span class="upcoming-flag">Coming soon</span>
+        </li>
+        <li class="upcoming-item">
+          <span class="upcoming-code num">B09</span>
+          <span class="upcoming-name">Evapotranspiration (ET)</span>
+          <span class="upcoming-desc">Crop water use from thermal and optical data.</span>
+          <span class="upcoming-flag">Coming soon</span>
+        </li>
+        <li class="upcoming-item">
+          <span class="upcoming-code num">B10</span>
+          <span class="upcoming-name">Soil moisture</span>
+          <span class="upcoming-desc">Root-zone moisture for drought warning.</span>
+          <span class="upcoming-flag">Coming soon</span>
+        </li>
+        <li class="upcoming-item">
+          <span class="upcoming-code num">B11</span>
+          <span class="upcoming-name">River morphology</span>
+          <span class="upcoming-desc">Bank erosion, thalweg shifts and sandbars.</span>
+          <span class="upcoming-flag">Coming soon</span>
+        </li>
+        <li class="upcoming-item">
+          <span class="upcoming-code num">B12</span>
+          <span class="upcoming-name">Salinity intrusion</span>
+          <span class="upcoming-desc">Tidal salt-front tracking in the delta.</span>
+          <span class="upcoming-flag">Coming soon</span>
+        </li>
+        <li class="upcoming-item">
+          <span class="upcoming-code num">B13</span>
+          <span class="upcoming-name">Sluice operations</span>
+          <span class="upcoming-desc">Radar detection of tidal sluice gates.</span>
+          <span class="upcoming-flag">Coming soon</span>
+        </li>
+    </ul>
+  </section>
+
+  <!-- Section 4: Synoptic Basin Station Ledger -->
+  <section class="section-ledger" id="ledger">
+    <div class="section-header">
+      <h2 class="section-title">Station ledger</h2>
+      <p class="section-desc">
+        Verified dams, calibrated basins, the Tonle Sap and three reference gauges. Select a row to fly the globe to that station.
+      </p>
+    </div>
+
+    <div class="table-container">
+      <table class="ledger-table" aria-label="Mekong basin station ledger">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Station</th>
+            <th>Location</th>
+            <th class="num-col">River km</th>
+            <th class="num-col">Water level Z (m)</th>
+            <th class="num-col">Flow Q (m³/s) · Area · Volume</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr onclick="focusLedgerNode('jinghong')" style="cursor:pointer;" title="Fly to Jinghong">
+            <td class="num">B01-01</td>
+            <td><strong>Jinghong dam</strong></td>
+            <td>Lancang, China</td>
+            <td class="num num-col">2,080</td>
+            <td class="num num-col" id="row-jinghong-z">599.25</td>
+            <td class="num num-col" id="row-jinghong-q">1,943</td>
+            <td><span class="tag-status active">Verified · v5.7</span></td>
+          </tr>
+          <tr onclick="focusLedgerNode('nuozhadu')" style="cursor:pointer;" title="Fly to Nuozhadu">
+            <td class="num">B01-02</td>
+            <td><strong>Nuozhadu dam</strong></td>
+            <td>Lancang, China</td>
+            <td class="num num-col">1,820</td>
+            <td class="num num-col" id="row-nuozhadu-z">798.42</td>
+            <td class="num num-col" id="row-nuozhadu-q">1,313</td>
+            <td><span class="tag-status active">Verified · v6.5</span></td>
+          </tr>
+          <tr onclick="focusLedgerNode('yali')" style="cursor:pointer;" title="Fly to Ialy">
+            <td class="num">B01-03</td>
+            <td><strong>Ialy dam (Yali Falls)</strong></td>
+            <td>Sê San River, Vietnam</td>
+            <td class="num num-col">3,680</td>
+            <td class="num num-col" id="row-yali-z">514.13</td>
+            <td class="num num-col" id="row-yali-q">301</td>
+            <td><span class="tag-status active">Verified · v5.5</span></td>
+          </tr>
+          <tr onclick="focusLedgerNode('sesan_basin')" style="cursor:pointer;" title="Fly to the Sê San basin">
+            <td class="num">B02-01</td>
+            <td><strong>Sê San basin</strong></td>
+            <td>Gia Lai, Kon Tum · Ratanakiri</td>
+            <td class="num num-col" id="row-sesan-records">3,230</td>
+            <td class="num num-col">–</td>
+            <td class="num num-col" id="row-sesan-area">19,000 km²</td>
+            <td><span class="tag-status active">Calibrated · 3-layer bias correction</span></td>
+          </tr>
+          <tr onclick="focusLedgerNode('srepok_basin')" style="cursor:pointer;" title="Fly to the Srepok basin">
+            <td class="num">B02-02</td>
+            <td><strong>Srepok basin</strong></td>
+            <td>Đắk Lắk, Đắk Nông · Mondulkiri</td>
+            <td class="num num-col" id="row-srepok-records">3,230</td>
+            <td class="num num-col">–</td>
+            <td class="num num-col" id="row-srepok-area">31,000 km²</td>
+            <td><span class="tag-status active">Calibrated · 3-layer bias correction</span></td>
+          </tr>
+          <tr onclick="focusLedgerNode('tonle_sap')" style="cursor:pointer;" title="Fly to Kompong Luong">
+            <td class="num">B03-01</td>
+            <td><strong>Kompong Luong (Tonle Sap)</strong></td>
+            <td>Tonle Sap, Cambodia</td>
+            <td class="num num-col">3,880</td>
+            <td class="num num-col" id="row-tonlesap-z">9.11</td>
+            <td class="num num-col" id="row-tonlesap-v">58.82 km³</td>
+            <td><span class="tag-status active">Operational · SWOT + ICESat-2</span></td>
+          </tr>
+          <tr onclick="focusLedgerNode('phnom_penh')" style="cursor:pointer;" title="Fly to Chaktomuk">
+            <td class="num">B03-02</td>
+            <td><strong>Chaktomuk junction (Phnom Penh)</strong></td>
+            <td>Phnom Penh, Cambodia</td>
+            <td class="num num-col">3,920</td>
+            <td class="num num-col">8.95</td>
+            <td class="num num-col" id="row-chaktomuk-q">7,033</td>
+            <td><span class="tag-status active">Operational · Sentinel-1 SAR</span></td>
+          </tr>
+          <tr onclick="focusLedgerNode('kratie')" style="cursor:pointer;" title="Fly to Kratie">
+            <td class="num">REF-01</td>
+            <td><strong>Kratie</strong></td>
+            <td>Mekong, Cambodia</td>
+            <td class="num num-col">3,750</td>
+            <td class="num num-col">18.40</td>
+            <td class="num num-col">14,820</td>
+            <td><span class="tag-status active">MRC gauge</span></td>
+          </tr>
+          <tr onclick="focusLedgerNode('tan_chau')" style="cursor:pointer;" title="Fly to Tan Chau">
+            <td class="num">REF-02</td>
+            <td><strong>Tan Chau (Tien River)</strong></td>
+            <td>Mekong Delta, Vietnam</td>
+            <td class="num num-col">4,110</td>
+            <td class="num num-col">3.45</td>
+            <td class="num num-col">12,400</td>
+            <td><span class="tag-status active">MRC mainstem gauge</span></td>
+          </tr>
+          <tr onclick="focusLedgerNode('chau_doc')" style="cursor:pointer;" title="Fly to Chau Doc">
+            <td class="num">REF-03</td>
+            <td><strong>Chau Doc (Bassac River)</strong></td>
+            <td>Mekong Delta, Vietnam</td>
+            <td class="num num-col">4,115</td>
+            <td class="num num-col">3.12</td>
+            <td class="num num-col">6,280</td>
+            <td><span class="tag-status active">MRC mainstem gauge</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Section 5: Call to Action -->
+  <section class="section-cta">
+    <div class="cta-inner">
+      <h2 class="cta-title">Open the workbench</h2>
+      <p class="cta-desc">
+        Reservoirs, rainfall and the Tonle Sap in one multi-window workspace.
+      </p>
+      <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+        <a href="portal_multiwindow_terminal.html" class="btn-launchpad" style="padding: 12px 28px; font-size: var(--step-body);">
+          <span>Open workbench</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div>
+        <strong style="color: var(--text-main); font-size: var(--step-body);">MekongSense · Making sense of the basin from space</strong>
+        <p style="font-size: var(--step-small); color: var(--text-muted); margin-top: 4px;">WGS84 · EGM2008 heights · Lancang–Mekong mainstem, 4,350 km</p>
+      </div>
+
+      <div class="footer-credits">
+        Satellite observations: NASA SWOT, ICESat-2, MODIS · ESA Sentinel-1, -2 · USGS Landsat-9.<br>
+        Transboundary hydrometric records: Mekong River Commission (MRC).<br>
+        Platform developed by Pham Toan &amp; Minh Tâm - Mekong Sense.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Interactive Scripts -->
+  <script>
+    // Theme Management
+    function initTheme() {
+      const saved = localStorage.getItem('mekongsense-home-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+      updateThemeButton(saved);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('mekongsense-home-theme', next);
+      updateThemeButton(next);
+    }
+
+    function updateThemeButton(theme) {
+      const label = document.getElementById('theme-btn-label');
+      if (theme === 'dark') {
+        label.textContent = 'Light Mode';
+      } else {
+        label.textContent = 'Dark Mode';
+      }
+    }
+    initTheme();
+
+    // Authored Hero Entrance
+    window.addEventListener('DOMContentLoaded', () => {
+      const heroElements = document.querySelectorAll(
+        '.hero-title, .hero-tagline, .hero-actions, .telemetry-cell, .hero-stage'
+      );
+      heroElements.forEach((el, i) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(12px)';
+        el.style.transition = 'opacity 0.45s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)';
+        setTimeout(() => {
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0)';
+        }, 40 + i * 50);
+      });
+    });
+
+    // Longitudinal Hydraulic Regimes Data (Backed by Real Satellite Observations)
+    const STAGES_DATA = [
+      {
+        title: "Lancang cascade",
+        desc: "Xiaowan (292 m arch dam) and Nuozhadu (261.5 m embankment dam) turn a flashy monsoon hydrograph into a steadier one.",
+        image: "assets/branding_mekongsense/mekongsense_lancang_dam.jpg",
+        l1: "Jinghong level (Z)", m1: "599.25 m",
+        l2: "Nuozhadu level (Z)", m2: "798.42 m",
+        l3: "Nuozhadu outflow (Q)", m3: "1,313 m³/s"
+      },
+      {
+        title: "Lao mainstem",
+        desc: "Fault-controlled bedrock reaches give way to alluvial valleys. Unregulated tributaries add monsoon runoff.",
+        image: "assets/branding_mekongsense/mekongsense_lao_mainstem.jpg",
+        l1: "Chiang Saen datum", m1: "361.4 m",
+        l2: "Lateral inflow", m2: "+1,610 m³/s",
+        l3: "Vientiane flow (Q)", m3: "4,120 m³/s"
+      },
+      {
+        title: "Tonle Sap reversal",
+        desc: "Tonle Sap, the Great Lake, is a natural flood buffer: it fills when the Mekong peaks and drains back as the river falls.",
+        image: "assets/branding_mekongsense/mekongsense_tonlesap_lake.jpg",
+        l1: "Lake level (WSE)", m1: "9.11 m",
+        l2: "Storage (V)", m2: "58.82 km³",
+        l3: "Exchange flow (Q)", m3: "7,033 m³/s"
+      },
+      {
+        title: "Mekong Delta",
+        desc: "Two main channels, the Tien and Bassac (Hau), spread flow across a low-lying plain. Tides control water level and salinity.",
+        image: "assets/branding_mekongsense/real_mekong_delta_estuaries.jpg",
+        l1: "Mean estuarine level (Z)", m1: "1.85 m",
+        l2: "Tan Chau + Chau Doc", m2: "18,680 m³/s",
+        l3: "Sea outlets", m3: "9"
+      }
+    ];
+
+    function switchStage(idx) {
+      for (let i = 0; i < 4; i++) {
+        const tab = document.getElementById(`stage-tab-${i}`);
+        if (i === idx) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      }
+
+      const data = STAGES_DATA[idx];
+      const img = document.getElementById('stage-main-img');
+      img.style.opacity = '0';
+      
+      setTimeout(() => {
+        img.src = data.image;
+        document.getElementById('stage-display-title').textContent = data.title;
+        document.getElementById('stage-display-desc').textContent = data.desc;
+        document.getElementById('stage-l1').textContent = data.l1;
+        document.getElementById('stage-m1').textContent = data.m1;
+        document.getElementById('stage-l2').textContent = data.l2;
+        document.getElementById('stage-m2').textContent = data.m2;
+        document.getElementById('stage-l3').textContent = data.l3;
+        document.getElementById('stage-m3').textContent = data.m3;
+        img.style.opacity = '1';
+      }, 200);
+    }
+
+    function focusLedgerNode(nodeId) {
+      const heroEl = document.getElementById('hero');
+      if (heroEl) heroEl.scrollIntoView({ behavior: 'smooth' });
+      if (window.MekongGlobe && typeof window.MekongGlobe.focus === 'function') {
+        setTimeout(() => window.MekongGlobe.focus(nodeId), 350);
+      }
+    }
+
+    // Dynamic Telemetry Hydration from Canonical Data Stores (B01, B02, B03)
+    function hydrateBasinData() {
+      try {
+        // 1. Branch B01: Cascade Dams (window.PORTAL_REAL_DATA)
+        if (Array.isArray(window.PORTAL_REAL_DATA)) {
+          const dams = window.PORTAL_REAL_DATA;
+          const jinghong = dams.find(d => d.id === 'jinghong');
+          const nuozhadu = dams.find(d => d.id === 'nuozhadu');
+          const yali = dams.find(d => d.id === 'yali_falls');
+
+          if (jinghong) {
+            const elZ = document.getElementById('row-jinghong-z');
+            const elQ = document.getElementById('row-jinghong-q');
+            if (elZ && jinghong.elevation_m != null) elZ.textContent = jinghong.elevation_m.toFixed(2);
+            if (elQ && jinghong.q_out_m3s != null) elQ.textContent = Math.round(jinghong.q_out_m3s).toLocaleString('en-US');
+            
+            const b01Val = document.getElementById('b01-live-val');
+            if (b01Val && jinghong.elevation_m != null && jinghong.q_out_m3s != null) {
+              b01Val.textContent = `Q ${Math.round(jinghong.q_out_m3s).toLocaleString('en-US')} m³/s · Z ${jinghong.elevation_m.toFixed(2)} m`;
+            }
+          }
+
+          if (nuozhadu) {
+            const elZ = document.getElementById('row-nuozhadu-z');
+            const elQ = document.getElementById('row-nuozhadu-q');
+            if (elZ && nuozhadu.elevation_m != null) elZ.textContent = nuozhadu.elevation_m.toFixed(2);
+            if (elQ && nuozhadu.q_out_m3s != null) elQ.textContent = Math.round(nuozhadu.q_out_m3s).toLocaleString('en-US');
+          }
+
+          if (yali) {
+            const elZ = document.getElementById('row-yali-z');
+            const elQ = document.getElementById('row-yali-q');
+            if (elZ && yali.elevation_m != null) elZ.textContent = yali.elevation_m.toFixed(2);
+            if (elQ && yali.q_out_m3s != null) elQ.textContent = Math.round(yali.q_out_m3s).toLocaleString('en-US');
+          }
+        }
+
+        // 2. Branch B02: Certified Precipitation Basins (window.PORTAL_PRECIP_DATA)
+        if (window.PORTAL_PRECIP_DATA && Array.isArray(window.PORTAL_PRECIP_DATA.subbasins)) {
+          const basins = window.PORTAL_PRECIP_DATA.subbasins;
+          const certBasins = basins.filter(b => b.is_certified === true);
+          const totalCertArea = certBasins.reduce((acc, b) => acc + (b.area_km2 || 0), 0);
+          
+          const b02Val = document.getElementById('b02-live-val');
+          if (b02Val) b02Val.textContent = Math.round(totalCertArea).toLocaleString('en-US') + ' km²';
+
+          const sesan = basins.find(b => b.id === 'sesan_basin_vn_kh');
+          const srepok = basins.find(b => b.id === 'srepok_basin_vn_kh');
+          
+          if (sesan) {
+            const elArea = document.getElementById('row-sesan-area');
+            if (elArea && sesan.area_km2 != null) elArea.textContent = Math.round(sesan.area_km2).toLocaleString('en-US') + ' km²';
+            const elRec = document.getElementById('row-sesan-records');
+            if (elRec) elRec.textContent = sesan.series ? sesan.series.length.toLocaleString('en-US') : '3,230';
+          }
+          if (srepok) {
+            const elArea = document.getElementById('row-srepok-area');
+            if (elArea && srepok.area_km2 != null) elArea.textContent = Math.round(srepok.area_km2).toLocaleString('en-US') + ' km²';
+            const elRec = document.getElementById('row-srepok-records');
+            if (elRec) elRec.textContent = srepok.series ? srepok.series.length.toLocaleString('en-US') : '3,230';
+          }
+        }
+
+        // 3. Branch B03: Tonle Sap Lake Dynamics (window.PORTAL_TONLESAP_DATA)
+        if (window.PORTAL_TONLESAP_DATA && Array.isArray(window.PORTAL_TONLESAP_DATA.timeseries)) {
+          const series = window.PORTAL_TONLESAP_DATA.timeseries;
+          if (series.length > 0) {
+            const latest = series[series.length - 1];
+            const heroTsV = document.getElementById('hero-tonlesap-v');
+            if (heroTsV && latest.storage_bcm != null) {
+              heroTsV.innerHTML = `${latest.storage_bcm.toFixed(2)} <span class="cell-unit">km³</span>`;
+            }
+
+            const b03Val = document.getElementById('b03-live-val');
+            if (b03Val && latest.storage_bcm != null && latest.q_exchange_m3s != null) {
+              b03Val.textContent = `V ${latest.storage_bcm.toFixed(2)} km³ · Q ${Math.round(latest.q_exchange_m3s).toLocaleString('en-US')} m³/s`;
+            }
+
+            const rowTsZ = document.getElementById('row-tonlesap-z');
+            if (rowTsZ && latest.wse_m != null) rowTsZ.textContent = latest.wse_m.toFixed(2);
+
+            const rowTsV = document.getElementById('row-tonlesap-v');
+            if (rowTsV && latest.storage_bcm != null) rowTsV.textContent = `${latest.storage_bcm.toFixed(2)} km³`;
+
+            const rowChakQ = document.getElementById('row-chaktomuk-q');
+            if (rowChakQ && latest.q_exchange_m3s != null) rowChakQ.textContent = Math.round(latest.q_exchange_m3s).toLocaleString('en-US');
+          }
+        }
+      } catch (err) {
+        console.warn('Hydration notice:', err);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', hydrateBasinData);
+  </script>
+
+  <!-- Embedded 3D globe (local, offline-ready; textures packed as data URIs for file:// WebGL) -->
+  <script src="assets/globe/three.min.js" defer></script>
+  <script src="assets/globe/OrbitControls.js" defer></script>
+  <script src="assets/globe/earth_textures.js" defer></script>
+  <script src="assets/globe/mekong_3d_thalweg.js" defer></script>
+  <script src="assets/globe/mekong_network.js" defer></script>
+  <script src="assets/globe/tonle_sap_lake.js" defer></script>
+  <script src="assets/globe/mekong_tile_data.js" defer></script>
+  <script src="assets/globe/mekong_globe.js" defer></script>
+</body>
+</html>

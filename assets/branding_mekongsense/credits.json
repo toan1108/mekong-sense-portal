@@ -1,0 +1,50 @@
+[
+ {
+  "file": "Projects/DATA PORTAL/prototypes/assets/branding_mekongsense/nasa-mekong-satellite-flood-jpg.jpg",
+  "media": "image",
+  "ref": "commons:192671829",
+  "title": "Flooding on the Mekong River (13982)",
+  "creator": "NASA image created by Jesse Allen, Earth Observatory using data obtained from the MODIS Rapid Response team.",
+  "creatorUrl": null,
+  "date": "Taken on 21 September 2004",
+  "license": "public domain",
+  "licenseCode": "pd",
+  "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+  "creditRequired": false,
+  "page": "https://commons.wikimedia.org/wiki/File:Flooding_on_the_Mekong_River_(13982).jpg",
+  "via": "Wikimedia Commons",
+  "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/15/Flooding_on_the_Mekong_River_%2813982%29.jpg/1920px-Flooding_on_the_Mekong_River_%2813982%29.jpg",
+  "width": 1920,
+  "height": 2069,
+  "bytes": 1325851,
+  "credit": "\"Flooding on the Mekong River (13982)\" by NASA image created by Jesse Allen, Earth Observatory using…, public domain, via Wikimedia Commons",
+  "notes": [],
+  "saved": "2026-11-02T08:33:52.913Z"
+ },
+ {
+  "file": "Projects/DATA PORTAL/prototypes/assets/branding_mekongsense/river-loop-webm.webm",
+  "media": "video",
+  "poster": "Projects/DATA PORTAL/prototypes/assets/branding_mekongsense/river-loop-webm-poster.jpg",
+  "ref": "commons:194413244",
+  "title": "Water in River Migori",
+  "creator": "Queen Asali",
+  "creatorUrl": null,
+  "date": "2026-06-22",
+  "license": "CC BY-SA 4.0",
+  "licenseCode": "by-sa",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "creditRequired": true,
+  "page": "https://commons.wikimedia.org/wiki/File:Water_in_River_Migori.webm",
+  "via": "Wikimedia Commons",
+  "video": "https://upload.wikimedia.org/wikipedia/commons/transcoded/8/8a/Water_in_River_Migori.webm/Water_in_River_Migori.webm.480p.vp9.webm",
+  "width": 854,
+  "height": 394,
+  "duration": 10.1,
+  "bytes": 1400467,
+  "credit": "\"Water in River Migori\" by Queen Asali, CC BY-SA 4.0, via Wikimedia Commons",
+  "notes": [
+   "Share-alike: an altered version (recoloured, combined with other pictures) must be shared under the same licence."
+  ],
+  "saved": "2026-11-02T08:51:12.069Z"
+ }
+]

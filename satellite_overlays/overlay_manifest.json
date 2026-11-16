@@ -1,0 +1,52 @@
+{
+  "dam_id": "nuozhadu",
+  "leaflet_bounds": [
+    [
+      22.63,
+      100.12
+    ],
+    [
+      23.11,
+      100.45
+    ]
+  ],
+  "events": {
+    "2022-02-08": {
+      "date": "2022-02-08",
+      "layers": {
+        "s2_rgb": "satellite_overlays/s2_20220208_rgb.png",
+        "s2_water": "satellite_overlays/s2_20220208_water.png",
+        "s1_vv": "satellite_overlays/s1_20220208_vv.png",
+        "s1_water": "satellite_overlays/s1_20220208_water.png",
+        "fused_water": "satellite_overlays/fused_20220208_water.png",
+        "l8_rgb": "satellite_overlays/l8_20220215_rgb.png",
+        "l8_water": "satellite_overlays/l8_20220215_water.png"
+      },
+      "stats": {
+        "s2_area_km2": 36.13,
+        "s1_area_km2": 35.19,
+        "fused_area_km2": 36.29,
+        "l8_area_km2": 61.34,
+        "diff_s2_s1_km2": 0.93,
+        "agreement_pct": 97.4
+      }
+    },
+    "2020-04-19": {
+      "date": "2020-04-19",
+      "layers": {
+        "s2_rgb": "satellite_overlays/s2_20200419_rgb.png",
+        "s2_water": "satellite_overlays/s2_20200419_water.png",
+        "s1_vv": "satellite_overlays/s1_20200419_vv.png",
+        "s1_water": "satellite_overlays/s1_20200419_water.png",
+        "fused_water": "satellite_overlays/fused_20200419_water.png"
+      },
+      "stats": {
+        "s2_area_km2": 23.45,
+        "s1_area_km2": 33.81,
+        "fused_area_km2": 34.82,
+        "sar_rescue_gain_km2": 11.37,
+        "sar_rescue_pct": 48.5
+      }
+    }
+  }
+}

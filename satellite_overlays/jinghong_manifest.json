@@ -1,0 +1,52 @@
+{
+  "dam_id": "jinghong",
+  "leaflet_bounds": [
+    [
+      22.0496,
+      100.3831
+    ],
+    [
+      22.636,
+      100.802
+    ]
+  ],
+  "events": {
+    "2022-02-08": {
+      "date": "2022-02-08",
+      "layers": {
+        "s2_rgb": "satellite_overlays/jh_s2_20220208_rgb.png",
+        "s2_water": "satellite_overlays/jh_s2_20220208_water.png",
+        "s1_vv": "satellite_overlays/jh_s1_20220208_vv.png",
+        "s1_water": "satellite_overlays/jh_s1_20220208_water.png",
+        "fused_water": "satellite_overlays/jh_fused_20220208_water.png",
+        "l8_rgb": "satellite_overlays/jh_l8_20220215_rgb.png",
+        "l8_water": "satellite_overlays/jh_l8_20220215_water.png"
+      },
+      "stats": {
+        "s2_area_km2": 26.4,
+        "s1_area_km2": 25.36,
+        "fused_area_km2": 26.4,
+        "l8_area_km2": 23.81,
+        "diff_s2_s1_km2": 1.04,
+        "agreement_pct": 96.1
+      }
+    },
+    "2021-06-13": {
+      "date": "2021-06-13",
+      "layers": {
+        "s2_rgb": "satellite_overlays/jh_s2_20210613_rgb.png",
+        "s2_water": "satellite_overlays/jh_s2_20210613_water.png",
+        "s1_vv": "satellite_overlays/jh_s1_20210613_vv.png",
+        "s1_water": "satellite_overlays/jh_s1_20210613_water.png",
+        "fused_water": "satellite_overlays/jh_fused_20210613_water.png"
+      },
+      "stats": {
+        "s2_area_km2": 3.24,
+        "s1_area_km2": 25.07,
+        "fused_area_km2": 25.1,
+        "sar_rescue_gain_km2": 21.83,
+        "sar_rescue_pct": 673.8
+      }
+    }
+  }
+}

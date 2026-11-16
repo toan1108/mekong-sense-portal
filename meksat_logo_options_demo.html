@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEKSAT · Trình Diễn So Sánh 3 Phương Án Biểu Trưng (Logo Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-ground: #0d0d0f;
+    --bg-surface: #131217;
+    --bg-raised: #1a1921;
+    --border-subtle: #23222b;
+    --border-strong: #32313d;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --cyan: #38bdf8;
+    --cyan-dim: rgba(56, 189, 248, 0.12);
+    --emerald: #34d399;
+    --emerald-dim: rgba(52, 211, 153, 0.12);
+    --crimson: #f43f5e;
+    --crimson-dim: rgba(244, 63, 94, 0.12);
+    --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  [data-theme="light"] {
+    --bg-ground: #f1f5f9;
+    --bg-surface: #ffffff;
+    --bg-raised: #f8fafc;
+    --border-subtle: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --cyan: #0284c7;
+    --cyan-dim: rgba(2, 132, 199, 0.08);
+    --emerald: #059669;
+    --emerald-dim: rgba(5, 150, 105, 0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg-ground);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 80px;
+  }
+
+  /* Top Navigation Bar */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+  .brand-lockup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cyan);
+    background: var(--cyan-dim);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    letter-spacing: 0.05em;
+  }
+  .page-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .controls-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .btn-theme-toggle {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--bg-raised);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-theme-toggle:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  /* Hero Banner */
+  .hero-section {
+    padding: 40px 24px 24px 24px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cyan);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .hero-heading {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .hero-desc {
+    color: var(--text-secondary);
+    font-size: 15px;
+    max-width: 820px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  /* Filter & View Switcher */
+  .view-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 32px;
+    padding-bottom: 12px;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-surface);
+  }
+  .tab-btn.active {
+    color: var(--cyan);
+    background: var(--cyan-dim);
+  }
+
+  /* Container */
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Section Title */
+  .section-header {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 10px;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .section-tag {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* 3 Cards Grid (Comparison) */
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  @media (max-width: 980px) {
+    .options-grid { grid-template-columns: 1fr; }
+  }
+
+  .option-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    position: relative;
+  }
+  .option-card:hover {
+    border-color: var(--cyan);
+    transform: translateY(-2px);
+  }
+  .option-card.recommended {
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 8px 30px rgba(56, 189, 248, 0.05);
+  }
+  .rec-ribbon {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--cyan-dim);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .option-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .option-name {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Stage Canvas */
+  .symbol-stage {
+    background: var(--bg-ground);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .symbol-stage svg {
+    position: relative;
+    z-index: 1;
+  }
+
+  .option-concept {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    flex-grow: 1;
+  }
+
+  /* Bullet Breakdown */
+  .feature-list {
+    list-style: none;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .feature-item {
+    font-size: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: var(--text-secondary);
+  }
+  .feature-item strong {
+    color: var(--text-primary);
+  }
+  .feature-bullet {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+  .bullet-cyan { background: var(--cyan); }
+  .bullet-emerald { background: var(--emerald); }
+  .bullet-white { background: #f8fafc; }
+
+  /* Action Buttons inside Card */
+  .card-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-select-option {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--bg-raised);
+    color: var(--text-primary);
+    border: 1px solid var(--border-strong);
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+  }
+  .btn-select-option:hover {
+    background: var(--cyan);
+    color: #000000;
+    border-color: var(--cyan);
+  }
+
+  /* LIVE IN-SITU PREVIEW SECTION */
+  .preview-section {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 48px;
+  }
+  .preview-header-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .segmented-switch {
+    display: flex;
+    background: var(--bg-raised);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 3px;
+  }
+  .switch-btn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .switch-btn.active {
+    background: var(--bg-surface);
+    color: var(--cyan);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  /* Mock App Header */
+  .mock-workbench-bar {
+    background: #101014;
+    border: 1px solid #23222b;
+    border-radius: 8px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .mock-workbench-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .mock-workbench-title {
+    display: flex;
+    flex-direction: column;
+  }
+  .mock-name {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mock-sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #94a3b8;
+    letter-spacing: 0.08em;
+  }
+  .mock-workbench-center {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #94a3b8;
+  }
+  .mock-tag {
+    background: rgba(56, 189, 248, 0.1);
+    color: #38bdf8;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+  }
+  .mock-workbench-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mock-btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: #1a1921;
+    border: 1px solid #32313d;
+    color: #cbd5e1;
+    padding: 6px 12px;
+    border-radius: 4px;
+  }
+
+  /* Mock Launchpad Hero Stage */
+  .mock-launchpad-hero {
+    background: #0d0d0f;
+    border: 1px solid #23222b;
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Scale Strip (Favicon to 128px) */
+  .scale-strip-container {
+    margin-top: 32px;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 24px;
+  }
+  .scale-strip-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .scale-strip {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    background: var(--bg-ground);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 24px 32px;
+  }
+  .scale-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .scale-caption {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* Spider Deconstruction Box */
+  .deconstruction-banner {
+    background: rgba(244, 63, 94, 0.04);
+    border: 1px solid rgba(244, 63, 94, 0.25);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 48px;
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 20px;
+    align-items: center;
+  }
+  @media (max-width: 768px) {
+    .deconstruction-banner { grid-template-columns: 1fr; }
+  }
+  .old-logo-preview {
+    width: 80px;
+    height: 80px;
+    background: #171719;
+    border: 1px solid #332127;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .clin-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fb7185;
+    margin-bottom: 6px;
+  }
+  .clin-body {
+    font-size: 13px;
+    color: #cbd5e1;
+    line-height: 1.6;
+  }
+  .clin-body code {
+    font-family: var(--font-mono);
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* Field Gear Mockups */
+  .gear-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  @media (max-width: 768px) {
+    .gear-grid { grid-template-columns: 1fr; }
+  }
+  .gear-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .gear-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .gear-sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .patch-demo-case {
+    background: #09090b;
+    border: 2px solid #27272a;
+    border-radius: 8px;
+    height: 160px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .pelican-stencil {
+    border: 1px dashed rgba(255,255,255,0.2);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #121215;
+    border-radius: 6px;
+  }
+  .stencil-text {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.05em;
+  }
+  .stencil-dept {
+    font-size: 11px;
+    color: #a1a1aa;
+    letter-spacing: 0.12em;
+  }
+
+  /* Toast notification */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--cyan);
+    color: #000000;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 18px;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1000;
+  }
+  .toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+<!-- TOP NAVBAR -->
+<div class="top-bar">
+  <div class="brand-lockup">
+    <div id="nav-logo-slot">
+      <!-- Rendered dynamically -->
+    </div>
+    <div>
+      <div class="page-title">MEKSAT · Trình Diễn So Sánh 3 Phương Án Biểu Trưng</div>
+    </div>
+    <span class="brand-badge">VECTOR SOTA RENDER</span>
+  </div>
+  <div class="controls-group">
+    <button class="btn-theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()">NỀN SÁNG (LIGHT)</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- HERO -->
+  <div class="hero-section" style="padding-left:0; padding-right:0;">
+    <div class="hero-eyebrow">AEROSPACE &amp; HYDRO-GEODETIC IDENTITY SYSTEM</div>
+    <h1 class="hero-heading">So Sánh Trực Quan 3 Phương Án Biểu Trưng MEKSAT</h1>
+    <p class="hero-desc">
+      Nhằm khắc phục triệt để ảo giác thị giác <em>"con nhện"</em> ở phiên bản đầu tiên, 3 phương án dưới đây được thiết kế dựa trên các nguyên lý hình học quang học vững chắc, tách bạch rõ ràng giữa <strong>vệ tinh đo cao viễn thám</strong> và <strong>dòng chảy hạ lưu sông Mê Kông</strong>. Bạn có thể bấm xem thử trực tiếp trong giao diện Workbench và Launchpad.
+    </p>
+  </div>
+
+  <!-- DECONSTRUCTION & CAUSAL CLIN BANNER -->
+  <div class="deconstruction-banner">
+    <div class="old-logo-preview">
+      <svg width="48" height="48" viewBox="0 0 32 32" fill="none">
+        <line x1="16" y1="4" x2="7" y2="25" stroke="#38bdf8" stroke-width="1.2" opacity="0.4"/>
+        <line x1="16" y1="4" x2="25" y2="25" stroke="#38bdf8" stroke-width="1.2" opacity="0.4"/>
+        <path d="M7 25V11L16 20L25 11V25" stroke="#f8fafc" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16 7L16 12" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+        <path d="M16 20L16 26" stroke="#f43f5e" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="16" cy="5" r="1.5" fill="#38bdf8"/>
+      </svg>
+    </div>
+    <div>
+      <div class="clin-title">GIẢI MÃ CƠ CHẾ THỊ GIÁC: TẠI SAO BẢN CŨ BỊ NHÌN THÀNH "CON NHỆN"?</div>
+      <div class="clin-body">
+        <strong>1. [Observed Signal]:</strong> Người dùng nhìn thấy hình ảnh nhện 8 chân và đuôi nhả tơ.<br>
+        <strong>2. [Flawed Assumption]:</strong> Khi dựng bản đầu, việc vẽ thêm 2 tia quét chéo SWOT từ đỉnh vệ tinh nối xuống 2 đáy, kết hợp 4 nét của chữ M và 1 đoạn nét dọc thòng xuống dưới đáy chữ V đã tạo thành <strong>tập hợp 8 nhánh nét tỏa ra từ một tâm</strong>. Theo tâm lý học thị giác <em>(Gestalt Pareidolia)</em>, não bộ lập tức nhận diện đây là chân và tơ của một loài côn trùng.<br>
+        <strong>3. [Root Cause Correction]:</strong> Cắt bỏ hoàn toàn 2 tia chéo ngoại vi và đoạn đuôi thòng ở đáy. Tái lập cấu trúc hình học khối rõ ràng, dứt khoát.
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: 3 CARDS SIDE BY SIDE -->
+  <div class="section-header">
+    <div class="section-title">3 Phương Án Thiết Kế Mới (Vector Master Specs)</div>
+    <div class="section-tag">HOÀN TOÀN KHỬ BỎ ẢO GIÁC NHỆN · CHUẨN ĐỊA TRẮC &amp; VŨ TRỤ</div>
+  </div>
+
+  <div class="options-grid">
+
+    <!-- OPTION 1 -->
+    <div class="option-card recommended" id="card-opt1">
+      <div class="rec-ribbon">KHUYÊN DÙNG (SOTA)</div>
+      <div class="option-meta">PHƯƠNG ÁN 1 · TỐI GIẢN ĐỊA TRẮC</div>
+      <div class="option-name">
+        Pure Geodetic M
+      </div>
+
+      <div class="symbol-stage">
+        <!-- Option 1 Master SVG (80px) -->
+        <svg width="88" height="88" viewBox="0 0 32 32" fill="none">
+          <!-- Solid Clean M Frame -->
+          <path d="M6 24V11L16 20L26 11V24" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" class="theme-stroke-primary"/>
+          <!-- Orbital Satellite Sensor -->
+          <circle cx="16" cy="5" r="2.2" fill="#38bdf8"/>
+          <!-- Vertical Nadir Altimetry Beam -->
+          <line x1="16" y1="8.5" x2="16" y2="15.5" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round"/>
+          <!-- Target Thalweg Gauge Point -->
+          <circle cx="16" cy="20" r="1.6" fill="#34d399"/>
+        </svg>
+      </div>
+
+      <div class="option-concept">
+        Giữ trọn vẹn bản sắc chữ <strong>M</strong> đại diện cho lưu vực Mê Kông và hẻm núi Lan Thương vững chãi. Bỏ hoàn toàn 2 tia chéo và đuôi thòng. Vệ tinh thiên đỉnh phóng tia đo cao laser thẳng đứng (Nadir Beam) rọi trúng tim dòng chảy.
+      </div>
+
+      <ul class="feature-list">
+        <li class="feature-item">
+          <span class="feature-bullet bullet-white"></span>
+          <div><strong>Khung Chữ M Vững Chãi:</strong> Nét dày 2.6px, hai chân thẳng đứng tuyệt đối, cắm sâu vào nền bản đồ.</div>
+        </li>
+        <li class="feature-item">
+          <span class="feature-bullet bullet-cyan"></span>
+          <div><strong>Tia Đo Cao Thiên Đỉnh:</strong> 1 đường dứt khoát từ tọa độ (16, 8.5) xuống (16, 15.5), đại diện cho sóng radar KaRIn.</div>
+        </li>
+        <li class="feature-item">
+          <span class="feature-bullet bullet-emerald"></span>
+          <div><strong>Điểm Khảo Sát Thủy Triều:</strong> Chấm Emerald tại tọa độ (16, 20) báo hiệu hội tụ cao trình nước.</div>
+        </li>
+      </ul>
+
+      <div class="card-actions">
+        <button class="btn-select-option" onclick="previewInMockup(1)">Xem Trong Giao Diện &rarr;</button>
+      </div>
+    </div>
+
+    <!-- OPTION 2 -->
+    <div class="option-card" id="card-opt2">
+      <div class="option-meta">PHƯƠNG ÁN 2 · PHONG CÁCH VŨ TRỤ NASA</div>
+      <div class="option-name">
+        Orbital Delta &amp; River
+      </div>
+
+      <div class="symbol-stage">
+        <!-- Option 2 Master SVG (88px) -->
+        <svg width="88" height="88" viewBox="0 0 32 32" fill="none">
+          <!-- Orbital Satellite Delta Swath -->
+          <path d="M16 4.5L7 13.5H12L16 9.5L20 13.5H25L16 4.5Z" fill="#38bdf8"/>
+          <circle cx="16" cy="4.5" r="1" fill="#ffffff"/>
+          <!-- Mekong River Thalweg Curves -->
+          <path d="M6 18.5C10.5 15.5 13.5 21.5 16 21.5C18.5 21.5 21.5 15.5 26 18.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" class="theme-stroke-primary"/>
+          <path d="M6 24.5C10.5 21.5 13.5 27.5 16 27.5C18.5 27.5 21.5 21.5 26 24.5" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <div class="option-concept">
+        Rời bỏ chữ M đơn nét thông thường. Sử dụng <strong>cánh vệ tinh viễn thám dạng Delta Chevron</strong> bay trên không gian, phía dưới là 2 dải sóng nước Mê Kông uốn lượn nhịp nhàng. Cực kỳ hiện đại và mang tính biểu tượng cơ quan không gian quốc tế.
+      </div>
+
+      <ul class="feature-list">
+        <li class="feature-item">
+          <span class="feature-bullet bullet-cyan"></span>
+          <div><strong>Cánh Delta Vũ Trụ:</strong> Hình dáng khí động học tượng trưng cho vệ tinh SWOT &amp; Sentinel lướt trên quỹ đạo.</div>
+        </li>
+        <li class="feature-item">
+          <span class="feature-bullet bullet-white"></span>
+          <div><strong>Dòng Chính Thượng Lưu:</strong> Đường sóng trắng uốn lượn tượng trưng cho thalweg dòng sông mẹ.</div>
+        </li>
+        <li class="feature-item">
+          <span class="feature-bullet bullet-emerald"></span>
+          <div><strong>Thềm Phù Sa Đồng Bằng:</strong> Đường sóng xanh Emerald đại diện cho 9 nhánh sông Cửu Long hạ lưu.</div>
+        </li>
+      </ul>
+
+      <div class="card-actions">
+        <button class="btn-select-option" onclick="previewInMockup(2)">Xem Trong Giao Diện &rarr;</button>
+      </div>
+    </div>
+
+    <!-- OPTION 3 -->
+    <div class="option-card" id="card-opt3">
+      <div class="option-meta">PHƯƠNG ÁN 3 · HỘI TỤ ĐỒNG BẰNG</div>
+      <div class="option-name">
+        Confluence Horizon
+      </div>
+
+      <div class="symbol-stage">
+        <!-- Option 3 Master SVG (88px) -->
+        <svg width="88" height="88" viewBox="0 0 32 32" fill="none">
+          <!-- Satellite Zenith -->
+          <circle cx="16" cy="5" r="2.2" fill="#38bdf8"/>
+          <!-- Zenith Pulse -->
+          <line x1="16" y1="8" x2="16" y2="12" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+          <!-- Upper Lancang Gorge & River Basin -->
+          <path d="M7 23V11L16 18L25 11V23" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="theme-stroke-primary"/>
+          <!-- River Horizon Arc (Delta Cradle) -->
+          <path d="M4 25.5C10 22 22 22 28 25.5" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="4" cy="25.5" r="1.2" fill="#34d399"/>
+          <circle cx="28" cy="25.5" r="1.2" fill="#34d399"/>
+        </svg>
+      </div>
+
+      <div class="option-concept">
+        Khung chữ M vững chãi được đỡ bên dưới bởi <strong>vòm chân trời cong nhẹ của bờ biển Đông và vịnh Thái Lan</strong>. Cấu trúc đóng mở hài hòa, tạo thế đứng vững như bàn thạch và triệt tiêu toàn bộ cảm giác chân bò lơ lửng.
+      </div>
+
+      <ul class="feature-list">
+        <li class="feature-item">
+          <span class="feature-bullet bullet-white"></span>
+          <div><strong>Khung M Đồng Quy:</strong> Kết nối từ đỉnh nguồn Tây Tạng đổ dồn về trung tâm lòng hồ Tonle Sap.</div>
+        </li>
+        <li class="feature-item">
+          <span class="feature-bullet bullet-emerald"></span>
+          <div><strong>Vòm Cửa Biển Nâng Đỡ:</strong> Vòng cung đáy tạo bệ đỡ vững chắc, đại diện cho đường bờ biển ĐBSCL.</div>
+        </li>
+        <li class="feature-item">
+          <span class="feature-bullet bullet-cyan"></span>
+          <div><strong>Mắt Thần Vệ Tinh:</strong> Cảm biến viễn thám treo lơ lửng tại thiên đỉnh, bao quát trọn lưu vực.</div>
+        </li>
+      </ul>
+
+      <div class="card-actions">
+        <button class="btn-select-option" onclick="previewInMockup(3)">Xem Trong Giao Diện &rarr;</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECTION 2: LIVE SIMULATOR -->
+  <div class="preview-section" id="live-simulator">
+    <div class="preview-header-controls">
+      <div>
+        <div class="section-title">Trình Giả Lập Giao Diện Thực Tế (Live In-Situ Preview)</div>
+        <div class="section-tag">Xem logo đã chọn tích hợp vào thanh điều hướng Workbench và màn hình Launchpad</div>
+      </div>
+      <div class="segmented-switch">
+        <button class="switch-btn active" id="btn-mock-1" onclick="previewInMockup(1)">Phương án 1 (Geodetic M)</button>
+        <button class="switch-btn" id="btn-mock-2" onclick="previewInMockup(2)">Phương án 2 (Orbital Delta)</button>
+        <button class="switch-btn" id="btn-mock-3" onclick="previewInMockup(3)">Phương án 3 (Horizon Arc)</button>
+      </div>
+    </div>
+
+    <!-- Mockup A: Workbench Navigation Header -->
+    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
+      Kịch bản A: Thanh Tiêu Đề Trạm Khảo Sát Đa Màn Hình (Workbench Header Bar)
+    </div>
+    <div class="mock-workbench-bar">
+      <div class="mock-workbench-left">
+        <div id="mock-workbench-icon">
+          <!-- Injected SVG -->
+        </div>
+        <div class="mock-workbench-title">
+          <div class="mock-name">
+            MEKSAT
+            <span style="font-size: 11px; font-weight: 500; color: #94a3b8; font-family: var(--font-mono);">v2.4</span>
+          </div>
+          <div class="mock-sub">TRANSBOUNDARY SATELLITE TELEMETRY PORTAL</div>
+        </div>
+      </div>
+      <div class="mock-workbench-center">
+        <span class="mock-tag">SWOT PASS 299</span>
+        <span>TRẠM: CHIANG SAEN (#CS01)</span>
+        <span style="color: #34d399;">Q: 1,842 m³/s</span>
+        <span style="color: #38bdf8;">MASS BALANCE: ±0.00</span>
+      </div>
+      <div class="mock-workbench-right">
+        <span class="mock-btn">SPLIT SCREEN</span>
+        <span class="mock-btn" style="background:#0369a1; color:#ffffff; border-color:#38bdf8;">EXPORT DATA</span>
+      </div>
+    </div>
+
+    <!-- Mockup B: Launchpad Hero Brandlock -->
+    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; margin-top: 24px;">
+      Kịch bản B: Màn Hình Khởi Động Sứ Mệnh (Mission Launchpad Hero)
+    </div>
+    <div class="mock-launchpad-hero">
+      <div id="mock-hero-icon" style="margin-bottom: 16px;">
+        <!-- Injected SVG -->
+      </div>
+      <div style="font-size: 32px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px;" id="mock-hero-title">
+        MEKSAT
+      </div>
+      <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: #38bdf8; letter-spacing: 0.15em; margin-bottom: 16px;">
+        MEKONG BASIN SATELLITE TELEMETRY &amp; HYDRO-GEODETIC PORTAL
+      </div>
+      <div style="font-size: 14px; color: #94a3b8; max-width: 600px; line-height: 1.6; margin-bottom: 24px;">
+        Hệ thống quan trắc vệ tinh đo cao xuyên biên giới lưu vực sông Mê Kông · SWOT KaRIn &amp; Sentinel SAR · Đối chiếu 13 trạm thủy văn quốc tế
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <span style="background: #38bdf8; color: #000; font-family: var(--font-mono); font-size: 12px; font-weight: 700; padding: 10px 20px; border-radius: 6px;">VÀO TRẠM KHẢO SÁT CHÍNH</span>
+        <span style="background: #1a1921; color: #f8fafc; border: 1px solid #32313d; font-family: var(--font-mono); font-size: 12px; font-weight: 600; padding: 10px 20px; border-radius: 6px;">BẢN ĐỒ MẠNG SÔNG</span>
+      </div>
+    </div>
+
+    <!-- Scale Strip (Optical check at small sizes) -->
+    <div class="scale-strip-container">
+      <div class="scale-strip-label">Kiểm Tra Khả Năng Nhận Diện Ở Các Kích Thước (Optical Scalability Test)</div>
+      <div class="scale-strip">
+        <div class="scale-box">
+          <div id="scale-16"></div>
+          <div class="scale-caption">16px (Favicon)</div>
+        </div>
+        <div class="scale-box">
+          <div id="scale-24"></div>
+          <div class="scale-caption">24px (Mobile Bar)</div>
+        </div>
+        <div class="scale-box">
+          <div id="scale-32"></div>
+          <div class="scale-caption">32px (App Icon)</div>
+        </div>
+        <div class="scale-box">
+          <div id="scale-48"></div>
+          <div class="scale-caption">48px (Dock/Widget)</div>
+        </div>
+        <div class="scale-box">
+          <div id="scale-64"></div>
+          <div class="scale-caption">64px (Desktop)</div>
+        </div>
+        <div class="scale-box" style="margin-left: auto;">
+          <div id="scale-hz-lockup" style="display: flex; align-items: center; gap: 10px; background: var(--bg-surface); padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle);">
+            <!-- Horizontal Wordmark Lockup -->
+          </div>
+          <div class="scale-caption">Logo Khóa Ngang Chuẩn (Standard Horizontal Lockup)</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECTION 3: FIELD & HARDWARE APPLICATIONS -->
+  <div class="section-header">
+    <div class="section-title">Ứng Dụng Thực Địa &amp; Thiết Bị Đo Đạc (Field &amp; Hardware Badges)</div>
+    <div class="section-tag">KHẢ NĂNG KHẮC LASER · STENCIL HÒM THIẾT BỊ · HUY HIỆU KHẢO SÁT</div>
+  </div>
+
+  <div class="gear-grid">
+    <div class="gear-card">
+      <div class="gear-title">Hòm Thiết Bị Trắc Địa Chống Nước (Pelican Field Case Stencil)</div>
+      <div class="gear-sub">Sơn dập khuôn stencil trắng/xanh trên hòm bảo quản máy đo GNSS &amp; trạm đo cao</div>
+      <div class="patch-demo-case">
+        <div class="pelican-stencil">
+          <div id="stencil-icon-slot">
+            <!-- Injected Stencil SVG -->
+          </div>
+          <div>
+            <div class="stencil-text">MEKSAT FIELD TELEMETRY</div>
+            <div class="stencil-dept">HYDRO-METEOROLOGY CORPS · UNIT MEKONG-01</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gear-card">
+      <div class="gear-title">Huy Hiệu Đồng Phục Khảo Sát Trắc Địa (Embroidered Mission Patch)</div>
+      <div class="gear-sub">Thêu vi tính tròn 80mm trên áo phao và mũ dã ngoại chuyên gia lưu vực</div>
+      <div class="patch-demo-case" style="background: #0f172a; padding: 20px;">
+        <div style="width: 124px; height: 124px; border-radius: 50%; border: 3px solid #38bdf8; background: #0b0f19; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 12px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.5);">
+          <div id="patch-icon-slot">
+            <!-- Injected Patch SVG -->
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 800; color: #ffffff; letter-spacing: 0.1em; margin-top: 4px;">MEKSAT</div>
+          <div style="font-size: 11px; color: #34d399; letter-spacing: 0.08em; font-family: var(--font-mono);">SWOT MISSION</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">Đã chọn Phương án 1 làm biểu trưng mẫu!</div>
+
+<script>
+// SVG Vector Templates for the 3 options
+const LOGO_SPECS = {
+  1: {
+    name: "Pure Geodetic M",
+    code: "OPT-1",
+    render: (size = 32, theme = 'dark') => {
+      const strokeCol = theme === 'dark' ? '#f8fafc' : '#0f172a';
+      return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none">
+        <path d="M6 24V11L16 20L26 11V24" stroke="${strokeCol}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="16" cy="5" r="2.2" fill="#38bdf8"/>
+        <line x1="16" y1="8.5" x2="16" y2="15.5" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="16" cy="20" r="1.6" fill="#34d399"/>
+      </svg>`;
+    }
+  },
+  2: {
+    name: "Orbital Delta & River",
+    code: "OPT-2",
+    render: (size = 32, theme = 'dark') => {
+      const strokeCol = theme === 'dark' ? '#f8fafc' : '#0f172a';
+      return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none">
+        <path d="M16 4.5L7 13.5H12L16 9.5L20 13.5H25L16 4.5Z" fill="#38bdf8"/>
+        <circle cx="16" cy="4.5" r="1" fill="#ffffff"/>
+        <path d="M6 18.5C10.5 15.5 13.5 21.5 16 21.5C18.5 21.5 21.5 15.5 26 18.5" stroke="${strokeCol}" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M6 24.5C10.5 21.5 13.5 27.5 16 27.5C18.5 27.5 21.5 21.5 26 24.5" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>`;
+    }
+  },
+  3: {
+    name: "Confluence Horizon",
+    code: "OPT-3",
+    render: (size = 32, theme = 'dark') => {
+      const strokeCol = theme === 'dark' ? '#f8fafc' : '#0f172a';
+      return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="5" r="2.2" fill="#38bdf8"/>
+        <line x1="16" y1="8" x2="16" y2="12" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+        <path d="M7 23V11L16 18L25 11V23" stroke="${strokeCol}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 25.5C10 22 22 22 28 25.5" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="4" cy="25.5" r="1.2" fill="#34d399"/>
+        <circle cx="28" cy="25.5" r="1.2" fill="#34d399"/>
+      </svg>`;
+    }
+  }
+};
+
+let currentOption = 1;
+let currentTheme = 'dark';
+
+function updateThemeClasses() {
+  document.querySelectorAll('.theme-stroke-primary').forEach(el => {
+    el.setAttribute('stroke', currentTheme === 'dark' ? '#f8fafc' : '#0f172a');
+  });
+}
+
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.body.setAttribute('data-theme', currentTheme);
+  const btn = document.getElementById('theme-toggle-btn');
+  btn.textContent = currentTheme === 'dark' ? 'NỀN SÁNG (LIGHT)' : 'NỀN TỐI (DARK)';
+  previewInMockup(currentOption);
+  updateThemeClasses();
+}
+
+function previewInMockup(optNum) {
+  currentOption = optNum;
+
+  // Update tabs
+  [1, 2, 3].forEach(n => {
+    const btn = document.getElementById(`btn-mock-${n}`);
+    if (btn) btn.classList.toggle('active', n === optNum);
+  });
+
+  const opt = LOGO_SPECS[optNum];
+
+  // Nav Logo Slot
+  document.getElementById('nav-logo-slot').innerHTML = opt.render(28, currentTheme);
+
+  // Workbench Header
+  document.getElementById('mock-workbench-icon').innerHTML = opt.render(30, 'dark');
+
+  // Launchpad Hero Icon
+  document.getElementById('mock-hero-icon').innerHTML = opt.render(72, 'dark');
+
+  // Scale Strip
+  document.getElementById('scale-16').innerHTML = opt.render(16, currentTheme);
+  document.getElementById('scale-24').innerHTML = opt.render(24, currentTheme);
+  document.getElementById('scale-32').innerHTML = opt.render(32, currentTheme);
+  document.getElementById('scale-48').innerHTML = opt.render(48, currentTheme);
+  document.getElementById('scale-64').innerHTML = opt.render(64, currentTheme);
+
+  // Horizontal Wordmark Lockup
+  document.getElementById('scale-hz-lockup').innerHTML = `
+    ${opt.render(26, currentTheme)}
+    <div style="display: flex; flex-direction: column;">
+      <span style="font-weight: 800; font-size: 15px; letter-spacing: -0.01em; color: var(--text-primary); line-height: 1;">MEKSAT</span>
+      <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.08em; line-height: 1.3;">SATELLITE TELEMETRY</span>
+    </div>
+  `;
+
+  // Field Gear Slots
+  document.getElementById('stencil-icon-slot').innerHTML = opt.render(32, 'dark');
+  document.getElementById('patch-icon-slot').innerHTML = opt.render(44, 'dark');
+
+  // Toast notice
+  showToast(`Đã chuyển sang giả lập ${opt.name} (${opt.code})`);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Initial mount
+window.addEventListener('DOMContentLoaded', () => {
+  previewInMockup(1);
+  updateThemeClasses();
+});
+</script>
+
+</body>
+</html>

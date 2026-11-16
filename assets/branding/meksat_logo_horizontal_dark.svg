@@ -1,0 +1,14 @@
+<svg width="380" height="52" viewBox="0 0 380 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- MEKSAT Official Primary Horizontal Lockup (Dark Mode) -->
+  <g transform="translate(6, 6) scale(1.25)">
+    <!-- Orbital Satellite Delta Swath -->
+    <path d="M16 4.5L7 13.5H12L16 9.5L20 13.5H25L16 4.5Z" fill="#38bdf8"/>
+    <circle cx="16" cy="4.5" r="1.1" fill="#ffffff"/>
+    <!-- Mekong River Upper Thalweg Current -->
+    <path d="M6 18.5C10.5 15.5 13.5 21.5 16 21.5C18.5 21.5 21.5 15.5 26 18.5" stroke="#f8fafc" stroke-width="2.6" stroke-linecap="round"/>
+    <!-- Mekong River Lower Delta Current -->
+    <path d="M6 24.5C10.5 21.5 13.5 27.5 16 27.5C18.5 27.5 21.5 21.5 26 24.5" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+  <text x="56" y="24" font-family="'IBM Plex Mono', monospace" font-size="20" font-weight="800" letter-spacing="3" fill="#ffffff">MEKSAT</text>
+  <text x="56" y="42" font-family="'Public Sans', sans-serif" font-size="12" font-weight="500" letter-spacing="0.3" fill="#94a3b8">Mekong Spaceborne Analytics &amp; Telemetry</text>
+</svg>

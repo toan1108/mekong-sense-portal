@@ -1,0 +1,124 @@
+{
+  "leaflet_bounds": [
+    [
+      12.15,
+      103.6
+    ],
+    [
+      13.45,
+      104.95
+    ]
+  ],
+  "overlay_bbox": {
+    "south": 12.15,
+    "west": 103.6,
+    "north": 13.45,
+    "east": 104.95
+  },
+  "milestones": {
+    "2024-04-15": {
+      "title": "Mùa Kiệt (April 2024) - Nước Thấp & Rõ Nét",
+      "date": "2024-04-15",
+      "season": "dry",
+      "layers": {
+        "s2_rgb": {
+          "file": "s2_rgb_dry_20240415.png",
+          "relative_path": "satellite_overlays/tonlesap/s2_rgb_dry_20240415.png",
+          "title": "Sentinel-2 True Color (RGB)",
+          "sensor": "Sentinel-2 MSI",
+          "bands": [
+            "B4",
+            "B3",
+            "B2"
+          ],
+          "resolution": "10m"
+        },
+        "s2_falsecolor": {
+          "file": "s2_falsecolor_dry_20240415.png",
+          "relative_path": "satellite_overlays/tonlesap/s2_falsecolor_dry_20240415.png",
+          "title": "Sentinel-2 False Color (NIR/SWIR)",
+          "sensor": "Sentinel-2 MSI",
+          "bands": [
+            "B11",
+            "B8",
+            "B4"
+          ],
+          "resolution": "10-20m"
+        },
+        "s1_sar": {
+          "file": "s1_sar_dry_20240415.png",
+          "relative_path": "satellite_overlays/tonlesap/s1_sar_dry_20240415.png",
+          "title": "Sentinel-1 SAR VV Backscatter (dB)",
+          "sensor": "Sentinel-1 SAR",
+          "bands": [
+            "VV"
+          ],
+          "resolution": "10-20m"
+        },
+        "l8_rgb": {
+          "file": "l8_rgb_dry_20240415.png",
+          "relative_path": "satellite_overlays/tonlesap/l8_rgb_dry_20240415.png",
+          "title": "Landsat 8/9 True Color (RGB)",
+          "sensor": "Landsat 8/9 OLI",
+          "bands": [
+            "SR_B4",
+            "SR_B3",
+            "SR_B2"
+          ],
+          "resolution": "30m"
+        },
+        "fused_water": {
+          "file": "fused_water_dry_20240415.png",
+          "relative_path": "satellite_overlays/tonlesap/fused_water_dry_20240415.png",
+          "title": "Fused Water Classification (Open Water & Flooded Veg)",
+          "sensor": "Multi-Sensor Fused (S1+S2)",
+          "resolution": "10-30m",
+          "legend": {
+            "Open Water": "#00e5ff",
+            "Flooded Vegetation": "#10b981"
+          }
+        }
+      }
+    },
+    "2024-10-15": {
+      "title": "Mùa Lũ Đỉnh (October 2024) - Rừng Tràm Ngập Lũ & Nở Rộng",
+      "date": "2024-10-15",
+      "season": "flood",
+      "layers": {
+        "s1_sar": {
+          "file": "s1_sar_flood_20241015.png",
+          "relative_path": "satellite_overlays/tonlesap/s1_sar_flood_20241015.png",
+          "title": "Sentinel-1 SAR Backscatter (All-Weather Monsoon)",
+          "sensor": "Sentinel-1 SAR",
+          "bands": [
+            "VV"
+          ],
+          "resolution": "10-20m"
+        },
+        "s2_composite": {
+          "file": "s2_composite_flood_20241015.png",
+          "relative_path": "satellite_overlays/tonlesap/s2_composite_flood_20241015.png",
+          "title": "Sentinel-2 Cloud-Masked Composite (RGB)",
+          "sensor": "Sentinel-2 MSI",
+          "bands": [
+            "B4",
+            "B3",
+            "B2"
+          ],
+          "resolution": "10m"
+        },
+        "fused_water": {
+          "file": "fused_water_flood_20241015.png",
+          "relative_path": "satellite_overlays/tonlesap/fused_water_flood_20241015.png",
+          "title": "Fused Water Classification (Full Flood Inundation)",
+          "sensor": "Multi-Sensor Fused (S1+S2)",
+          "resolution": "10-30m",
+          "legend": {
+            "Open Water": "#00e5ff",
+            "Flooded Vegetation": "#10b981"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MekongSense — Transboundary Basin Earth Observation &amp; Hydrometric Portal (by Pham Toan &amp; Minh Tâm - Mekong Sense)</title>
+
+    <!-- Typography: Public Sans & IBM Plex Mono (Taste-Skill Data Terminal Specification) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Hardware-Accelerated Leaflet Canvas Renderer Configuration -->
+    <script>
+        window.L_PREFER_CANVAS = true;
+        if (window.L && !window.MEKONG_CANVAS_RENDERER) {
+            window.MEKONG_CANVAS_RENDERER = L.canvas({ padding: 0.5, tolerance: 4 });
+        }
+    </script>
+
+    <!-- Real Offline Data Stores & Window Bundle (Supports direct file:/// execution with zero CORS errors) -->
+    <script src="portal_branches_registry.js"></script>
+    <script src="portal_real_data.js"></script>
+    <script src="portal_precip_store.js"></script>
+    <script src="portal_tonlesap_store.js"></script>
+    <script src="mekong_rivers_network.js"></script>
+    <script src="portal_multiwindow_bundle.js"></script>
+
+    <style>
+        /* -------------------------------------------------------------------------
+         * DESIGN SYSTEM TOKENS: DATA TERMINAL (MARKETS / DEVTOOLS OPERATE MODE)
+         * Distilled from taste-skill library/app.json & impeccable guidelines
+         * ---------------------------------------------------------------------- */
+        :root {
+            --ground: #171719;
+            --surface: #131217;
+            --surface-raised: #212023;
+            --surface-hover: #26252a;
+            --border: #222224;
+            --rule: #1b1a1f;
+            --control: #2c2b30;
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;          /* Hydrosensing Cyan (WCAG AA on dark: 9.2:1) */
+            --positive: #44a282;        /* Operational Stable Green */
+            --warning: #d9a441;         /* Low-Storage Amber */
+            --negative: #e5566f;        /* Alert Rose */
+            --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html, body {
+            font-family: var(--font-sans) !important;
+            background: var(--ground);
+            color: var(--text-primary);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .font-mono-tabular {
+            font-family: var(--font-mono) !important;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .font-mono {
+            font-family: var(--font-mono) !important;
+        }
+
+        /* -------------------------------------------------------------------------
+         * TASTE-SKILL SIGNATURE "THE MOVE": 1PX ACCENT LINE SELECTION
+         * No filled glowing pills. Active items carry a crisp 1px accent underline.
+         * ---------------------------------------------------------------------- */
+        .terminal-window-tab {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            height: 48px;
+            padding: 0 16px;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            user-select: none;
+            transition: color 120ms ease-out, background 120ms ease-out;
+            font-family: var(--font-sans);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .terminal-window-tab:hover {
+            color: var(--text-primary);
+            background: var(--surface-raised);
+        }
+        .terminal-window-tab.active {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom-color: var(--accent);
+            font-weight: 600;
+        }
+        .terminal-window-tab.secondary-tab {
+            border-bottom-color: #38bdf8;
+        }
+
+        /* -------------------------------------------------------------------------
+         * DATA TERMINAL 1PX MOVE FOR SUB-TABS & FILTER BARS
+         * Eliminates filled pills; active state rests directly on border edge.
+         * ---------------------------------------------------------------------- */
+        .b01-filter-btn, .tab-btn {
+            position: relative;
+            background: transparent !important;
+            border: none !important;
+            border-bottom: 2px solid transparent !important;
+            color: var(--text-muted);
+            padding: 4px 8px 6px 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: color 120ms ease-out, border-color 120ms ease-out;
+            border-radius: 0 !important;
+        }
+        .b01-filter-btn:hover, .tab-btn:hover {
+            color: var(--text-primary);
+        }
+        .b01-filter-btn.active, .tab-btn.active {
+            color: var(--text-primary) !important;
+            border-bottom-color: var(--accent) !important;
+            font-weight: 600;
+        }
+
+        /* Emil Kowalski active compression for tactile physical feedback */
+        button:active, .rail-btn:active, .terminal-window-tab:active, .b01-filter-btn:active, .tab-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Mode toggle button */
+        #btnSplitMode.active {
+            color: var(--accent);
+            background: rgba(56, 189, 248, 0.1);
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        /* Workspace Grid Split */
+        #workspaceCanvas {
+            display: block;
+            position: relative;
+            overflow: hidden;
+            background: var(--ground);
+            height: calc(100vh - 48px - 32px);
+            min-height: 0;
+        }
+        #workspaceCanvas:not(.split-view-active) #windowSlotDivider,
+        #workspaceCanvas:not(.split-view-active) #windowSlotSecondary {
+            display: none !important;
+        }
+        #workspaceCanvas.split-view-active {
+            display: grid !important;
+            grid-template-columns: 1fr 1px 1fr !important;
+            height: 100% !important;
+            min-height: 0 !important;
+        }
+        #workspaceCanvas.split-view-active #windowSlotDivider {
+            display: block !important;
+            width: 1px !important;
+            height: 100% !important;
+            background: var(--border) !important;
+        }
+        #workspaceCanvas.split-view-active #windowSlotSecondary,
+        #windowSlotPrimary {
+            display: flex !important;
+            flex-direction: column !important;
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 0 !important;
+            min-width: 0 !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--surface);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a292f;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38373e;
+        }
+
+        /* Leaflet Dark Filter & Edge Padding */
+        .leaflet-container {
+            background: #100f13 !important;
+            font-family: var(--font-sans) !important;
+        }
+        .leaflet-bar a {
+            background-color: #171719 !important;
+            color: #cbd5e1 !important;
+            border-color: #222224 !important;
+        }
+        .leaflet-bar a:hover {
+            background-color: #212023 !important;
+            color: #ffffff !important;
+        }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+            background: #171719 !important;
+            color: #ffffff !important;
+            border: 1px solid #222224 !important;
+            box-shadow: none !important;
+            border-radius: 4px !important;
+        }
+        .leaflet-control-attribution {
+            margin-right: 24px !important;
+            margin-bottom: 12px !important;
+            background: rgba(19, 18, 23, 0.8) !important;
+            color: #8a8c92 !important;
+            font-size: 11px !important;
+        }
+
+        /* Icon rail button */
+        .rail-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            color: var(--text-muted);
+            transition: color 120ms ease-out, background 120ms ease-out;
+            position: relative;
+        }
+        .rail-btn:hover {
+            color: var(--text-primary);
+            background: var(--surface-raised);
+        }
+        .rail-btn.active {
+            color: var(--accent);
+            background: rgba(56, 189, 248, 0.1);
+        }
+        .rail-btn.active::before {
+            content: '';
+            position: absolute;
+            left: -7px;
+            top: 6px;
+            bottom: 6px;
+            width: 2px;
+            background: var(--accent);
+            border-radius: 1px;
+        }
+
+        /* Strict Modal Overlays (Highest Z-Index to Sit Above Leaflet & Full Visibility Isolation) */
+        .portal-modal-overlay {
+            display: none !important;
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 99999 !important;
+            background: rgba(0, 0, 0, 0.85) !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 16px !important;
+        }
+        .portal-modal-overlay.open {
+            display: flex !important;
+        }
+
+        /* Floating Inspector Dock Collapse State */
+        .floating-dock.collapsed {
+            transform: translateX(calc(100% + 24px)) !important;
+            pointer-events: none !important;
+        }
+    
+        /* Leaflet Dark Tooltip for Inactive Dams */
+        .b01-dam-tooltip-dark {
+            background-color: #12141a !important;
+            border: 1px solid #334155 !important;
+            border-radius: 4px !important;
+            color: #f1f5f9 !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75) !important;
+            padding: 4px 8px !important;
+        }
+        .b01-dam-tooltip-dark.leaflet-tooltip-top::before {
+            border-top-color: #334155 !important;
+        }
+        .b01-dam-tooltip-dark.leaflet-tooltip-bottom::before {
+            border-bottom-color: #334155 !important;
+        }
+    
+        /* Universal Data-Terminal Precision Dark Tooltip (WCAG AAA Contrast) */
+        .leaflet-tooltip,
+        .mks-dark-tooltip {
+            background: rgba(11, 16, 27, 0.95) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+            border: 1px solid rgba(56, 189, 248, 0.5) !important;
+            border-radius: 6px !important;
+            color: #f8fafc !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(56, 189, 248, 0.2) !important;
+            padding: 6px 10px !important;
+            font-size: 11px !important;
+            line-height: 1.4 !important;
+        }
+        .leaflet-tooltip-top::before,
+        .mks-dark-tooltip.leaflet-tooltip-top::before {
+            border-top-color: rgba(56, 189, 248, 0.5) !important;
+        }
+        .leaflet-tooltip-bottom::before,
+        .mks-dark-tooltip.leaflet-tooltip-bottom::before {
+            border-bottom-color: rgba(56, 189, 248, 0.5) !important;
+        }
+        .leaflet-tooltip-left::before,
+        .mks-dark-tooltip.leaflet-tooltip-left::before {
+            border-left-color: rgba(56, 189, 248, 0.5) !important;
+        }
+        .leaflet-tooltip-right::before,
+        .mks-dark-tooltip.leaflet-tooltip-right::before {
+            border-right-color: rgba(56, 189, 248, 0.5) !important;
+        }
+
+        /* Cartographic Sub-Basin Labels (B02) */
+        .mks-basin-label {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            pointer-events: auto !important;
+            cursor: pointer !important;
+        }
+        .mks-basin-label-inner {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            border-radius: 4px;
+            padding: 2px 7px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: #e2e8f0;
+            text-transform: uppercase;
+            white-space: nowrap;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+            transition: all 150ms ease-out;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.65);
+        }
+        .mks-basin-label:hover .mks-basin-label-inner,
+        .mks-basin-label.active .mks-basin-label-inner {
+            background: rgba(16, 185, 129, 0.25);
+            border-color: #34d399;
+            color: #34d399;
+            box-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
+            transform: scale(1.05);
+        }
+        .mks-basin-label-badge {
+            margin-left: 5px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 10px;
+            font-weight: 500;
+            color: #38bdf8;
+            background: rgba(2, 132, 199, 0.25);
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Cartographic Dam Labels (B01) */
+        .mks-dam-label {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            pointer-events: auto !important;
+            cursor: pointer !important;
+        }
+        .mks-dam-label-inner {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(11, 16, 27, 0.85);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            color: #f1f5f9;
+            white-space: nowrap;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+            transition: all 120ms ease-out;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+        }
+        .mks-dam-label:hover .mks-dam-label-inner,
+        .mks-dam-label.active .mks-dam-label-inner {
+            background: rgba(2, 132, 199, 0.35);
+            border-color: #38bdf8;
+            color: #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+            transform: scale(1.04);
+        }
+        .mks-dam-label-tier1 .mks-dam-label-inner {
+            border-color: rgba(56, 189, 248, 0.65);
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+    </style>
+</head>
+<body class="bg-[#171719] text-white">
+
+    <!-- -----------------------------------------------------------------------
+     * 1. 50PX LEFT ICON RAIL (QUICK LAUNCHER & TOOLING DOCK)
+     * -------------------------------------------------------------------- -->
+    <aside id="iconRail" class="w-[50px] h-full bg-[#131217] border-r border-[#222224] flex flex-col items-center justify-between py-3 z-40 flex-shrink-0">
+        <!-- Top MEKSAT Brand Mark -->
+        <div class="flex flex-col items-center space-y-4">
+            <a href="index.html" class="w-8 h-8 rounded bg-[#171719] border border-[#2c2b30] flex items-center justify-center hover:border-sky-400 transition-colors p-1" title="MEKSAT — Mekong Spaceborne Analytics &amp; Telemetry">
+                <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M16 4.5L7 13.5H12L16 9.5L20 13.5H25L16 4.5Z" fill="#38bdf8"/>
+  <circle cx="16" cy="4.5" r="1.1" fill="#ffffff"/>
+  <path d="M6 18.5C10.5 15.5 13.5 21.5 16 21.5C18.5 21.5 21.5 15.5 26 18.5" stroke="#f8fafc" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M6 24.5C10.5 21.5 13.5 27.5 16 27.5C18.5 27.5 21.5 21.5 26 24.5" stroke="#34d399" stroke-width="2.4" stroke-linecap="round"/>
+</svg>
+            </a>
+
+            <!-- Quick Branch Selectors -->
+            <div class="flex flex-col items-center space-y-1.5 pt-2 border-t border-[#222224] w-full px-1.5">
+                <button class="rail-btn active font-mono-tabular text-xs font-bold" id="railBtnB01" title="B01: Cascade Dams Telemetry (419 Dams)">
+                    B1
+                </button>
+                <button class="rail-btn font-mono-tabular text-xs font-bold text-emerald-400" id="railBtnB02" title="B02: Calibrated Precipitation (16 Basins)">
+                    B2
+                </button>
+                <button class="rail-btn font-mono-tabular text-xs font-bold text-sky-400" id="railBtnB03" title="B03: Tonle Sap Lake Dynamics (SWOT + ICESat-2)">
+                    B3
+                </button>
+                <button class="rail-btn font-mono-tabular text-xs font-bold text-blue-400" id="railBtnB08" title="B08: Flood Inundation & Emergency Rapid Mapping">
+                    B8
+                </button>
+                <button class="rail-btn font-mono-tabular text-xs font-bold text-rose-400" id="railBtnB06" title="B06: InSAR Land Subsidence Geodesy">
+                    B6
+                </button>
+                <button class="rail-btn" id="railBtnAll" title="Open 13 Branches Command Palette (Ctrl+K)">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom Actions (Brand Identity, Surveyor, Methodology, Docs) -->
+        <div class="flex flex-col items-center space-y-2 pb-2">
+            <a href="meksat_brand_identity.html" class="rail-btn hover:text-sky-400" title="MEKSAT Brand Identity Guidelines & Asset Kit">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                </svg>
+            </a>
+            <a href="dam_cut_surveyor.html" class="rail-btn hover:text-sky-400" title="Launch 1:1 Dam-Cut Surveyor Workbench">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+            </a>
+            <button id="btnOpenMethodology" class="rail-btn hover:text-amber-400" title="Geodetic Methodology (SCS 4-Pillars)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </button>
+            <button id="btnOpenExportModal" class="rail-btn hover:text-emerald-400" title="Download Hydrodynamic Model Boundary Files">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+            </button>
+        </div>
+    </aside>
+
+    <!-- -----------------------------------------------------------------------
+     * 2. MAIN WORKSPACE CONTAINER (FLIGHT BAR + WORKBENCH CANVAS + FOOTER)
+     * -------------------------------------------------------------------- -->
+    <main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-[#171719]">
+
+        <!-- TOP FLIGHT BAR (48px) -->
+        <header id="topFlightBar" class="h-12 bg-[#131217] border-b border-[#222224] flex items-center justify-between px-5 z-30 flex-shrink-0">
+            <!-- Left: Brand Title & Tab Switcher -->
+            <div class="flex items-center min-w-0 flex-1 overflow-hidden mr-2">
+                <div class="flex items-baseline space-x-1.5 flex-shrink-0 pr-4 pl-1 border-r border-[#222224]">
+                    <a href="index.html" class="flex items-baseline space-x-1.5 transition-opacity hover:opacity-85" title="Back to MekongSense Homepage">
+                        <h1 class="text-xs font-extrabold text-white tracking-widest font-mono leading-none whitespace-nowrap">
+                            MEKONGSENSE
+                        </h1>
+                        <span class="text-[11px] font-semibold text-sky-400 tracking-wider uppercase font-mono">WORKBENCH</span>
+                    </a>
+                </div>
+
+                <!-- Dynamic Windows Tabs Container -->
+                <div id="windowTabs" class="flex-1 flex items-center space-x-1 overflow-x-auto no-scrollbar h-12 px-2">
+                    <!-- Rendered by WindowManager.renderTabs() -->
+                </div>
+
+                <!-- Open New Tab Button -->
+                <button id="btnNewTab" class="w-6 h-6 rounded bg-[#171719] hover:bg-[#212023] border border-[#2c2b30] flex items-center justify-center text-slate-300 hover:text-white text-xs flex-shrink-0" title="Open Branch Catalog (Ctrl+K)">
+                    +
+                </button>
+            </div>
+
+            <!-- Right: Telemetry + Layout Controls + Export -->
+            <div class="flex items-center space-x-2 flex-shrink-0">
+                <!-- Primary Telemetry Indicators -->
+                <div id="topTelemetryBar" class="hidden">
+                    <!-- Updated by WindowManager.updateTelemetry() -->
+                </div>
+
+                <!-- Split Mode Toggle Button -->
+                <button id="btnSplitMode" class="px-2.5 py-1 rounded bg-[#171719] hover:bg-[#212023] border border-[#2c2b30] text-slate-200 text-xs font-medium flex items-center transition-colors" title="Toggle Split View [2]">
+                    <svg class="w-3.5 h-3.5 mr-1 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4v16m6-16v16M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    </svg>
+                    <span>Split [2]</span>
+                </button>
+
+                <!-- Command Palette Shortcut Button -->
+                <button id="btnCommandPalette" class="px-2.5 py-1 rounded bg-[#171719] hover:bg-[#212023] border border-[#2c2b30] text-slate-200 text-xs font-medium flex items-center transition-colors" title="Command Palette (Ctrl+K)">
+                    <svg class="w-3.5 h-3.5 mr-1 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <span class="hidden sm:inline">Search</span>
+                    <span class="text-[11px] font-mono-tabular text-slate-400 ml-1.5 bg-[#212023] px-1 rounded border border-[#333338]">⌘K</span>
+                </button>
+
+                <!-- Redundant header export button removed: use dam-specific Export MIKE 11 button -->
+            </div>
+        </header>
+
+        <!-- WORKSPACE CANVAS (HOSTS 1 OR 2 WINDOWS UNDER 2-DOM HARD CEILING) -->
+        <div id="workspaceCanvas" class="flex-1 w-full relative overflow-hidden bg-[#171719]">
+            <!-- PRIMARY WINDOW SLOT (ALWAYS MOUNTED) -->
+            <div id="windowSlotPrimary" class="w-full h-full relative overflow-hidden">
+                <!-- Dynamically mounted by WindowManager -->
+            </div>
+
+            <!-- VERTICAL DIVIDER (SHOWN ONLY IN SPLIT VIEW VIA CSS) -->
+            <div id="windowSlotDivider" class="w-px h-full bg-[#222224]"></div>
+
+            <!-- SECONDARY WINDOW SLOT (MOUNTED ONLY IN SPLIT VIEW VIA CSS) -->
+            <div id="windowSlotSecondary" class="w-full h-full relative overflow-hidden">
+                <!-- Dynamically mounted by WindowManager in Split View -->
+            </div>
+        </div>
+
+        <!-- BOTTOM STATUS & TELEMETRY FOOTER (30px) -->
+        <footer id="bottomFooter" class="h-8 bg-[#131217] border-t border-[#222224] flex items-center justify-between px-6 text-xs text-slate-400 z-30 flex-shrink-0">
+            <!-- Left: Topology & Synchronized Timeline Status -->
+            <div class="flex items-center space-x-3.5">
+                <span class="flex items-center space-x-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span class="text-slate-200 font-bold" id="footerModeStatus">SINGLE WORKBENCH</span>
+                </span>
+                <span class="text-slate-600">|</span>
+                <span class="text-slate-300">Datum: <strong class="text-white font-mono-tabular">WGS84 / EGM2008</strong></span>
+                <span class="hidden" id="footerTimeSyncStatus"></span>
+            </div>
+
+            <!-- Right: WebGL Safety Limit & Institutional Citation (Sitting > 24px from right edge) -->
+            <div class="flex items-center space-x-3.5 pr-2">
+                <span class="hidden" id="footerWebGlCount">Safe</span>
+                <span class="text-slate-400 font-medium">MekongSense • Pham Toan &amp; Minh Tâm - Mekong Sense</span>
+            </div>
+        </footer>
+    </main>
+
+    <!-- -----------------------------------------------------------------------
+     * 3. METHODOLOGY AUDIT MODAL (SCS 4-PILLARS & THEORETICAL FORMULAS)
+     * -------------------------------------------------------------------- -->
+    <div id="methodologyModal" class="portal-modal-overlay">
+        <div class="w-full max-w-3xl bg-[#171719] border border-[#2c2b30] rounded-lg overflow-hidden flex flex-col text-slate-300">
+            <!-- Modal Header -->
+            <div class="p-4 bg-[#131217] border-b border-[#222224] flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+                    <strong class="text-white text-sm tracking-wide">GEODETIC METHODOLOGY &amp; MATHEMATICAL INVARIANTS</strong>
+                </div>
+                <button id="btnCloseMethodology" class="text-slate-400 hover:text-white" title="Close">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Modal Content (SCS 4-Pillars) -->
+            <div class="p-6 space-y-6 text-xs overflow-y-auto max-h-[75vh]">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 divide-y md:divide-y-0 md:divide-x divide-[#222224]">
+                    <div class="space-y-4 pr-0 md:pr-4">
+                        <div>
+                            <div class="font-bold text-sky-400 mb-1.5 text-xs">PILLAR 1: SATELLITE HYPSOMETRY</div>
+                            <p class="text-slate-300 leading-relaxed text-xs">
+                                Surface water extent A(t) delineated via Sentinel-1 SAR dual-polarization (VV, VH) thresholding + HAND terrain mask. Altimetry elevation H(t) calibrated against ICESat-2 ATL13 and SWOT KaRIn.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-[#222224]">
+                            <div class="font-bold text-emerald-400 mb-1.5 text-xs">PILLAR 2: SHAPE-PRESERVING PCHIP</div>
+                            <p class="text-slate-300 leading-relaxed text-xs">
+                                Monotonic derivative condition: dV/dE = A_phys(E) > 0. Zero inversion mismatch guaranteed across dead water level (DWL) to normal pool level (NPL).
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 pt-4 md:pt-0 pl-0 md:pl-6">
+                        <div>
+                            <div class="font-bold text-amber-400 mb-1.5 text-xs">PILLAR 3: 3-LAYER BIAS ASSIMILATION</div>
+                            <p class="text-slate-300 leading-relaxed text-xs">
+                                GPM IMERG V07 + ERA5-Land fused with 2,079 MRC ground gauges using DBS Gamma distribution scaling, Generalized Pareto Tail modeling, and Quantile Delta Mapping (QDM).
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-[#222224]">
+                            <div class="font-bold text-sky-400 mb-1.5 text-xs">PILLAR 4: STRICT RESIDUAL SOLVER</div>
+                            <div class="p-1.5 bg-[#100f13] border border-[#222224] rounded font-mono-tabular text-sky-300 text-center my-1.5 text-xs">
+                                Q*_out(t) = Q_in(t) - dS/dt + P(t) - ET(t)
+                            </div>
+                            <p class="text-slate-300 leading-relaxed text-xs">
+                                Daily residual discharge clamped strictly between 0 &le; Q_out &le; Q_spillway to ensure conservation of mass across cascade reaches.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-3.5 bg-[#100f13] border-t border-[#222224] flex items-center justify-between text-xs">
+                <span class="text-slate-400">Strict Peer-Audited Hydro-Geodetic Formulation</span>
+                <button id="btnCloseMethodologyBtn" class="px-3.5 py-1.5 bg-[#212023] hover:bg-[#2c2b30] text-white rounded text-xs">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- -----------------------------------------------------------------------
+     * 4. GLOBAL EXPORT MODAL (MODEL BOUNDARIES)
+     * -------------------------------------------------------------------- -->
+    <div id="exportModal" class="portal-modal-overlay">
+        <div class="w-full max-w-xl bg-[#171719] border border-[#2c2b30] rounded-lg overflow-hidden flex flex-col text-slate-300">
+            <div class="p-4 bg-[#131217] border-b border-[#222224] flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                    <strong class="text-white text-sm tracking-wide">HYDRODYNAMIC MODEL BOUNDARY EXPORT</strong>
+                </div>
+                <button id="btnCloseExportModal" class="text-slate-400 hover:text-white" title="Close">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 text-xs">
+                <p class="text-slate-300 text-xs">
+                    Select the target hydrodynamic or hydrological model boundary format for automated ingestion into numerical modeling pipelines:
+                </p>
+
+                <div class="divide-y divide-[#222224] border-t border-b border-[#222224]">
+                    <div class="py-3 hover:bg-[#1a191e] px-2 cursor-pointer flex items-center justify-between transition-colors" id="expDhiDfs0">
+                        <div>
+                            <div class="font-bold text-white text-xs">DHI MIKE 11 / MIKE Hydro (.dfs0 ASCII)</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">Standard DHI time series for Mekong Delta hydraulic model boundaries</div>
+                        </div>
+                        <span class="text-[11px] text-sky-400 font-bold bg-[#212023] px-2.5 py-1 rounded">Download</span>
+                    </div>
+
+                    <div class="py-3 hover:bg-[#1a191e] px-2 cursor-pointer flex items-center justify-between transition-colors" id="expSwatPcp">
+                        <div>
+                            <div class="font-bold text-white text-xs">SWAT+ Precipitation Forcing (.pcp ASCII)</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">1,339 continuous days of calibrated rainfall across 16 sub-basins</div>
+                        </div>
+                        <span class="text-[11px] text-emerald-400 font-bold bg-[#212023] px-2.5 py-1 rounded">Download</span>
+                    </div>
+
+                    <div class="py-3 hover:bg-[#1a191e] px-2 cursor-pointer flex items-center justify-between transition-colors" id="expCsvCanonical">
+                        <div>
+                            <div class="font-bold text-white text-xs">Canonical Telemetry Matrix (.csv / .parquet)</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">419 Cascade Dams & Tonle Sap (H, A, V, Qin, Qout, Storage Ratio)</div>
+                        </div>
+                        <span class="text-[11px] text-sky-400 font-bold bg-[#212023] px-2.5 py-1 rounded">Download</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3.5 bg-[#100f13] border-t border-[#222224] flex items-center justify-between text-xs">
+                <span class="text-slate-400">WMO-Compliant ASCII &amp; IEEE 754 Standards</span>
+                <button id="btnCloseExportBtn" class="px-3.5 py-1.5 bg-[#212023] hover:bg-[#2c2b30] text-white rounded text-xs">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- -----------------------------------------------------------------------
+     * 5. APPLICATION CONTROLLER (STANDALONE & ZERO-CORS COMPLIANT)
+     * -------------------------------------------------------------------- -->
+    <script>
+        async function initPortal() {
+            try {
+                // 1. Resolve registry (Offline global first, fallback to fetch)
+                let registry = window.PORTAL_BRANCHES_REGISTRY;
+                if (!registry) {
+                    try {
+                        const res = await fetch('portal_branches_registry.json');
+                        registry = await res.json();
+                    } catch (e) {
+                        console.warn('Fetch fallback failed:', e);
+                    }
+                }
+
+                if (!registry) {
+                    console.error('Fatal: No registry available.');
+                    return;
+                }
+
+                // 2. Instantiate Window Manager from bundle
+                const wm = new window.WindowManager({
+                    tabsContainer: document.getElementById('windowTabs'),
+                    primaryContainer: document.getElementById('windowSlotPrimary'),
+                    secondaryContainer: document.getElementById('windowSlotSecondary'),
+                    dividerElement: document.getElementById('windowSlotDivider'),
+                    telemetryContainer: document.getElementById('topTelemetryBar'),
+                    modeToggleBtn: document.getElementById('btnSplitMode')
+                });
+                window.wm = wm;
+
+                // 3. Initialize with modules from bundle
+                await wm.init(registry, {
+                    branch_01_dams: window.WindowBranch01Dams,
+                    branch_02_precipitation: window.WindowBranch02Precipitation,
+                    branch_03_tonlesap: window.WindowBranch03TonleSap,
+                    branch_04_irrigation: window.WindowSpecViewer,
+                    branch_05_rice_paddy: window.WindowSpecViewer,
+                    branch_06_land_subsidence: window.WindowSpecViewer,
+                    branch_07_lulc: window.WindowSpecViewer,
+                    branch_08_flood: window.WindowSpecViewer,
+                    branch_09_eta: window.WindowSpecViewer,
+                    branch_10_salinity: window.WindowSpecViewer,
+                    branch_11_water_quality: window.WindowSpecViewer,
+                    branch_12_flw: window.WindowSpecViewer,
+                    branch_13_swot: window.WindowSpecViewer
+                });
+
+                // 4. Initialize Command Palette (Ctrl+K)
+                const cp = new window.CommandPalette(wm, registry);
+
+            // 5. Connect UI Triggers
+            document.getElementById('btnCommandPalette').addEventListener('click', () => cp.toggle());
+            document.getElementById('btnNewTab').addEventListener('click', () => cp.open());
+            document.getElementById('railBtnAll').addEventListener('click', () => cp.open());
+
+            // Left Rail Quick Jumps & Active State Sync
+            const railMap = {
+                branch_01_dams: 'railBtnB01',
+                branch_02_precipitation: 'railBtnB02',
+                branch_03_tonlesap: 'railBtnB03',
+                branch_08_flood: 'railBtnB08',
+                branch_06_land_subsidence: 'railBtnB06'
+            };
+
+            function updateRailActiveByBranch(branchId) {
+                document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
+                const btnId = railMap[branchId];
+                if (btnId) {
+                    const btn = document.getElementById(btnId);
+                    if (btn) btn.classList.add('active');
+                }
+            }
+
+            // Hook wm.openBranch so switching via Top Tabs or Command Palette also updates Left Rail
+            const origOpenBranch = wm.openBranch.bind(wm);
+            wm.openBranch = async function(branchId, targetSlot = 'primary') {
+                await origOpenBranch(branchId, targetSlot);
+                if (targetSlot === 'primary') {
+                    updateRailActiveByBranch(branchId);
+                }
+            };
+
+            document.getElementById('railBtnB01').addEventListener('click', () => wm.openBranch('branch_01_dams', 'primary'));
+            document.getElementById('railBtnB02').addEventListener('click', () => wm.openBranch('branch_02_precipitation', 'primary'));
+            document.getElementById('railBtnB03').addEventListener('click', () => wm.openBranch('branch_03_tonlesap', 'primary'));
+            document.getElementById('railBtnB08').addEventListener('click', () => wm.openBranch('branch_08_flood', 'primary'));
+            document.getElementById('railBtnB06').addEventListener('click', () => wm.openBranch('branch_06_land_subsidence', 'primary'));
+
+            // URL Query Parameter Support (?branch=branch_02_precipitation or ?branch=B02)
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const branchQuery = urlParams.get('branch');
+                if (branchQuery && branchQuery !== 'branch_01_dams' && branchQuery.toUpperCase() !== 'B01') {
+                    const match = registry.branches.find(b => b.id === branchQuery || b.code.toLowerCase() === branchQuery.toLowerCase());
+                    if (match) {
+                        await wm.openBranch(match.id, 'primary');
+                    }
+                }
+            } catch (err) {
+                console.warn('URL branch query parse error:', err);
+            }
+
+            // Bind [F] key to toggle floating inspector docks & [R] to toggle satellite river network
+            window.addEventListener('keydown', (e) => {
+                if (!['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) && !cp.isOpen) {
+                    if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                        document.querySelectorAll('.floating-dock').forEach(d => d.classList.toggle('collapsed'));
+                    }
+                    if (e.key.toLowerCase() === 'r' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                        wm.mountedWindows.forEach(w => {
+                            if (typeof w._toggleRivers === 'function') w._toggleRivers();
+                        });
+                    }
+                    if (e.key.toLowerCase() === 'l' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                        wm.mountedWindows.forEach(w => {
+                            if (typeof w._toggleLabels === 'function') w._toggleLabels();
+                        });
+                    }
+                }
+            });
+
+            // Sync Footer Status with Window Manager Mode
+            const origSetMode = wm.setMode.bind(wm);
+            wm.setMode = async function(newMode) {
+                await origSetMode(newMode);
+                const footerMode = document.getElementById('footerModeStatus');
+                const footerWebGl = document.getElementById('footerWebGlCount');
+                if (footerMode) {
+                    footerMode.innerText = newMode === 'split' ? 'SPLIT WORKBENCH [2 ACTIVE]' : 'SINGLE WORKBENCH [1 ACTIVE]';
+                }
+                if (footerWebGl) {
+                    footerWebGl.innerText = newMode === 'split' ? 'Safe (2 Active)' : 'Safe (1 Active)';
+                }
+            };
+
+            // Methodology Modal Handlers
+            const methModal = document.getElementById('methodologyModal');
+            document.getElementById('btnOpenMethodology').addEventListener('click', () => methModal.classList.add('open'));
+            document.getElementById('btnCloseMethodology').addEventListener('click', () => methModal.classList.remove('open'));
+            document.getElementById('btnCloseMethodologyBtn').addEventListener('click', () => methModal.classList.remove('open'));
+            methModal.addEventListener('click', (e) => { if (e.target === methModal) methModal.classList.remove('open'); });
+
+            // Export Modal Handlers
+            const expModal = document.getElementById('exportModal');
+            const openExp = () => expModal.classList.add('open');
+            const closeExp = () => expModal.classList.remove('open');
+            document.getElementById('btnOpenExportModal').addEventListener('click', openExp);
+            document.getElementById('btnExportHeader')?.addEventListener('click', openExp);
+            document.getElementById('btnCloseExportModal').addEventListener('click', closeExp);
+            document.getElementById('btnCloseExportBtn').addEventListener('click', closeExp);
+            expModal.addEventListener('click', (e) => { if (e.target === expModal) closeExp(); });
+
+            function downloadTextFile(filename, content) {
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Real File Export Actions Trigger
+            document.getElementById('expDhiDfs0').addEventListener('click', () => {
+                const damsArr = Array.isArray(window.PORTAL_REAL_DATA) ? window.PORTAL_REAL_DATA : [];
+                const jh = damsArr.find(d => d.id === 'jinghong') || { timeseries: [] };
+                const nz = damsArr.find(d => d.id === 'nuozhadu') || { timeseries: [] };
+                const yl = damsArr.find(d => d.id === 'yali_falls') || { timeseries: [] };
+                const refSeries = jh.timeseries || [];
+                const lines = [
+                    '# Mekong Sense MEKSAT HYDRO-GEODETIC ENGINE — DHI MIKE 11 MULTI-BOUNDARY (.dfs0 ASCII)',
+                    '# Verified SOTA Reservoirs: Jinghong (CN), Nuozhadu (CN), Ialy Falls (VN)',
+                    'Date                \tJinghong_Qout(m3/s)\tNuozhadu_Qout(m3/s)\tIaly_Qout(m3/s)'
+                ];
+                refSeries.forEach((pt, idx) => {
+                    const q1 = pt.q_out != null ? Number(pt.q_out).toFixed(2) : '1943.00';
+                    const q2 = (nz.timeseries && nz.timeseries[idx]) ? Number(nz.timeseries[idx].q_out).toFixed(2) : '1313.00';
+                    const q3 = (yl.timeseries && yl.timeseries[idx]) ? Number(yl.timeseries[idx].q_out).toFixed(2) : '301.00';
+                    lines.push(`${pt.date} 00:00:00\t${q1}\t${q2}\t${q3}`);
+                });
+                downloadTextFile('MekongSense_MIKE11_Verified_Dams_Boundary.txt', lines.join('\n'));
+                closeExp();
+            });
+            document.getElementById('expSwatPcp').addEventListener('click', () => {
+                const pData = window.PORTAL_PRECIP_DATA || { subbasins: [] };
+                const subbasins = pData.subbasins || [];
+                const lines = [
+                    '# Mekong Sense MEKSAT HYDRO-GEODETIC ENGINE — SWAT+ CALIBRATED PRECIPITATION SUMMARY (.pcp ASCII)',
+                    'Basin_ID,Country,Area_km2,KGE_Score,NSE_Score,Total_Accumulated_mm,Max_Daily_mm'
+                ];
+                subbasins.forEach(b => {
+                    lines.push(`${b.id},${b.country},${b.area_km2},${b.metrics?.kge ?? ''},${b.metrics?.nse ?? ''},${b.total_accumulated_mm ?? ''},${b.max_daily_mm ?? ''}`);
+                });
+                downloadTextFile('MekongSense_Mekong_16Basins_SWAT.pcp', lines.join('\n'));
+                closeExp();
+            });
+            document.getElementById('expCsvCanonical').addEventListener('click', () => {
+                const damsArr = Array.isArray(window.PORTAL_REAL_DATA) ? window.PORTAL_REAL_DATA : [];
+                const lines = ['date,dam_id,dam_name,country,verification_status,wse_m,inflow_m3s,outflow_m3s'];
+                ['jinghong', 'nuozhadu', 'yali_falls'].forEach(id => {
+                    const d = damsArr.find(x => x.id === id);
+                    if (!d || !Array.isArray(d.timeseries)) return;
+                    d.timeseries.forEach(pt => {
+                        lines.push(`${pt.date},${d.id},${d.name},${d.country},VERIFIED_SOTA,${pt.h ?? ''},${pt.q_in ?? ''},${pt.q_out ?? ''}`);
+                    });
+                });
+                downloadTextFile('MekongSense_Canonical_Verified_Telemetry.csv', lines.join('\n'));
+                closeExp();
+            });
+
+            // Expose globally for browser debugging
+            window.__PORTAL_WM = wm;
+            window.__PORTAL_CP = cp;
+            } catch (err) {
+                console.error('CRITICAL ERROR IN initPortal:', err);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', initPortal);
+        } else {
+            initPortal();
+        }
+    </script>
+</body>
+</html>

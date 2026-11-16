@@ -1,0 +1,23 @@
+{
+  "measured": {
+    "chevron_top": "#0293dd",
+    "chevron_bottom": "#0378bf",
+    "apex": "#03a7f0",
+    "wave_river": "#05598e",
+    "wave_emerald": "#28c58c",
+    "wordmark_navy": "#18283f",
+    "wordmark_sky": "#06a9f2",
+    "tagline_grey": "#5a626c"
+  },
+  "contrast": {
+    "navy on white": 14.85,
+    "sky on white": 2.64,
+    "river on white": 7.43,
+    "emerald on white": 2.22,
+    "tagline grey on white": 6.18,
+    "sky on dark ground 0B1220": 7.1,
+    "emerald on dark ground": 8.43,
+    "river on dark ground": 2.52,
+    "navy on dark ground": 1.26
+  }
+}
